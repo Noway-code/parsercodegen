@@ -1,8 +1,10 @@
-var x, y;
+var x,y;
+procedure foo(w);
+     begin
+           w := w*w*w;
+           return := w;
+     end;
 begin
-/* testing
-   testing */
-    y := 3;
-    x := y + 56;
-    \t
-end.
+x := 5;
+     y := call foo(x);
+write y; end.
