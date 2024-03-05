@@ -57,15 +57,15 @@ int tokenCount;
 // Symbol struct for HW3
 typedef struct Symbol
 {
+	char name[10]; // name up to 11 chars
     int kind; // const = 1, var = 2, proc = 3
-    char name[10]; // name up to 11 chars
     int val; // number (ASCII value)
     int level; // L level
     int addr; // M address
     int mark; // to indicate unavailable or deleted
 } Symbol;
 
-//symbol_table[MAX_SYMBOL_TABLE_SIZE];
+Symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 
 int main(int argc, char **argv) {
     if (argc < 2)
@@ -418,11 +418,21 @@ void printTokenList() {
 
 }
 
-//SYMBOLTABLECHECK (string)
-//    linear search through symbol table looking at name
-//    return index if found, -1 if not
+//linear search through symbol table looking at name
+//return index if found, -1 if not
+int SYMBOLTABLECHECK (char* string){
+	for (int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++){
+		if (strcmp(symbol_table[i].name, string) == 0){
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 
 /*
+// if we don't end the block with a period, error. after the block, and period, we emit a halt.
 PROGRAM
     BLOCK
     if token != periodsym
@@ -430,7 +440,10 @@ PROGRAM
     emit HALT
 */
 
+
 /*
+// we can have a const declaration or a var declaration, or both, or neither.
+// if we have a var declaration, we emit an INCREASE instruction with the number of variables.
 BLOCK
     CONST-DECLARATION
     numVars = VAR-DECLARATION
@@ -439,6 +452,7 @@ BLOCK
 */
 
 /*
+// we can have multiple const declarations, each separated by a comma, and ending with a semicolon.
 CONST-DECLARATION
     if token == const
         do
@@ -463,6 +477,7 @@ CONST-DECLARATION
 */
 
 /*
+// we can have multiple var declarations, each separated by a comma, and ending with a semicolon. returns number of variables
 VAR-DECLARATION – returns number of variables
     numVars = 0
     if token == varsym
@@ -483,6 +498,7 @@ VAR-DECLARATION – returns number of variables
 */
 
 /*
+// we can have a statement, or a begin statement, or an if statement, or a while statement, or a read statement, or a write statement.
 STATEMENT
     if token == identsym
         symIdx = SYMBOLTABLECHECK (token)
@@ -551,6 +567,7 @@ STATEMENT
 */
 
 /*
+// we can have an odd condition, or an expression, or an expression followed by an equal, not equal, less than, less than or equal, greater than, or greater than or equal condition.
 CONDITION
     if token == oddsym
         get next token
@@ -584,6 +601,10 @@ CONDITION
             emit GEQ
         else
             error
+*/
+
+/*
+// we can have a term, or a term followed by a plus or minus, or a term followed by a plus or minus followed by another term.
 EXPRESSION (HINT: modify it to match the grammar)
     if token == minussym
         get next token
@@ -613,6 +634,7 @@ EXPRESSION (HINT: modify it to match the grammar)
                     emit SUB
 */
 
+// term can be a factor, or a factor followed by a multiply, divide, or mod, or a factor followed by a multiply, divide, or mod followed by another factor.
 /*
 TERM
     FACTOR
@@ -632,6 +654,7 @@ TERM
 */
 
 /*
+// factor can be an identifier, a number, a left parenthesis followed by an expression followed by a right parenthesis, or an error.
 FACTOR
     if token == identsym
         symIdx = SYMBOLTABLECHECK (token)
