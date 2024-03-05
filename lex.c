@@ -124,7 +124,7 @@ void createToken(FILE* fileptr) {
 			printNumber(lexeme, lexCount);
 		}
 			// Ignore spaces and new lines
-		else if (reader == ' ' || reader == 13 || reader == 10) {
+		else if (reader == ' ' || reader == 13 || reader == 10 || reader == 9) {
 			continue;
 		}
 			// Check for symbols

@@ -4,4 +4,4 @@ project(parsercodegen C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(parsercodegen
-        lex.c)
+        parsercodegen.c)
