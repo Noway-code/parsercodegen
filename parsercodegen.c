@@ -418,23 +418,27 @@ void printTokenList() {
 
 }
 
-/*
-SYMBOLTABLECHECK (string)
-    linear search through symbol table looking at name
-    return index if found, -1 if not
+//SYMBOLTABLECHECK (string)
+//    linear search through symbol table looking at name
+//    return index if found, -1 if not
 
+/*
 PROGRAM
     BLOCK
     if token != periodsym
         error
     emit HALT
+*/
 
+/*
 BLOCK
     CONST-DECLARATION
     numVars = VAR-DECLARATION
     emit INC (M = 3 + numVars)
     STATEMENT
+*/
 
+/*
 CONST-DECLARATION
     if token == const
         do
@@ -456,8 +460,9 @@ CONST-DECLARATION
         if token != semicolonsym
             error
         get next token
+*/
 
-
+/*
 VAR-DECLARATION – returns number of variables
     numVars = 0
     if token == varsym
@@ -475,8 +480,9 @@ VAR-DECLARATION – returns number of variables
             error
         get next token
     return numVars
+*/
 
-
+/*
 STATEMENT
     if token == identsym
         symIdx = SYMBOLTABLECHECK (token)
@@ -506,7 +512,7 @@ STATEMENT
         jpcIdx = current code index
         emit JPC
         if token != thensym
-        error
+            error
         get next token
         STATEMENT
         code[jpcIdx].M = current code index
@@ -542,8 +548,9 @@ STATEMENT
         EXPRESSION
         emit WRITE
         return
+*/
 
-
+/*
 CONDITION
     if token == oddsym
         get next token
@@ -567,76 +574,83 @@ CONDITION
             get next token
             EXPRESSION
             emit LEQ
-else if token == gtrsym
-get next token
-EXPRESSION
-emit GTR
-else if token == geqsym
-get next token
-EXPRESSION
-emit GEQ
-else
-error
+        else if token == gtrsym
+            get next token
+            EXPRESSION
+            emit GTR
+        else if token == geqsym
+            get next token
+            EXPRESSION
+            emit GEQ
+        else
+            error
 EXPRESSION (HINT: modify it to match the grammar)
-if token == minussym
-get next token
+    if token == minussym
+        get next token
+        TERM
+        emit NEG
+        while token == plussym || token == minussym
+            if token == plussym
+                get next token
+                TERM
+                emit ADD
+            else
+                get next token
+                TERM
+                emit SUB
+    else
+        if token == plussym
+            get next token
+            TERM
+            while token == plussym || token == minussym
+                if token == plussym
+                    get next token
+                    TERM
+                    emit ADD
+                else
+                    get next token
+                    TERM
+                    emit SUB
+*/
+
+/*
 TERM
-emit NEG
-while token == plussym || token == minussym
-if token == plussym
-get next token
-TERM
-emit ADD
-else
-get next token
-TERM
-emit SUB
-else
-if token == plussym
-get next token
-TERM
-while token == plussym || token == minussym
-if token == plussym
-get next token
-TERM
-emit ADD
-else
-get next token
-TERM
-emit SUB
-TERM
+    FACTOR
+    while token == multsym || token == slashsym || token == modsym
+        if token == multsym
+            get next token
+            FACTOR
+            emit MUL
+        else if token == slashsym
+            get next token
+            FACTOR
+            emit DIV
+        else
+            get next token
+            FACTOR
+            emit MOD
+*/
+
+/*
 FACTOR
-while token == multsym || token == slashsym || token == modsym
-if token == multsym
-get next token
-FACTOR
-emit MUL
-else if token == slashsym
-get next token
-FACTOR
-emit DIV
-else
-get next token
-FACTOR
-emit MOD
-FACTOR
-if token == identsym
-symIdx = SYMBOLTABLECHECK (token)
-if symIdx == -1
-error
-if table[symIdx].kind == 1 (const)
-emit LIT (M = table[symIdx].Value)
-else (var)
-emit LOD (M = table[symIdx].addr)
-get next token
-else if token == numbersym
-emit LIT
-get next token
-else if token == lparentsym
-get next token
-EXPRESSION
-if token != rparentsym
-error
-get next token
-else
-error*/
+    if token == identsym
+        symIdx = SYMBOLTABLECHECK (token)
+        if symIdx == -1
+            error
+        if table[symIdx].kind == 1 (const)
+            emit LIT (M = table[symIdx].Value)
+        else (var)
+            emit LOD (M = table[symIdx].addr)
+        get next token
+    else if token == numbersym
+        emit LIT
+        get next token
+    else if token == lparentsym
+        get next token
+        EXPRESSION
+        if token != rparentsym
+            error
+        get next token
+    else
+        error
+*/
