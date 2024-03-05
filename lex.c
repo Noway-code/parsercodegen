@@ -30,6 +30,18 @@ char specialSymbols[numSpecSymbols] = {'+', '-', '*', '/', '(', ')', '=', ',', '
 char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="};
 char reservedWords[numResWords][identMax] = {"const", "var", "procedure", "call", "begin", "end", "if",
                                              "fi", "then", "else", "while", "do", "read", "write"};
+// Function Prototypes
+void printSource(FILE* fileptr); // Prints out the source file
+void createToken(FILE* fileptr); // Creates tokens from the source file
+char peek(FILE *fileptr); // Peeks at the next character in the file
+int isReserved(char* lexeme); // Checks if a lexeme is a reserved word
+int isSymbol(char reader); // Checks if a character is a symbol
+int symbolCheck(char* lexeme, int lexCount); // Checks if a lexeme is a symbol
+void printReserved(char* lexeme, int token, int lexCount); // Prints a reserved word and its corresponding token
+void printNumber(char* lexeme, int lexCount); // Prints a number and its corresponding token
+void printSymbol(char* lexeme, int token, int lexCount); // Prints a symbol and its corresponding token
+void printTokenList(); // Prints the entire token list
+
 
 // Define a struct for tokens
 typedef struct Tokens {
@@ -42,17 +54,6 @@ typedef struct Tokens {
 Tokens tokenList[MAX_STRING];
 int tokenCount;
 
-// Function Prototypes
-void printSource(FILE* fileptr); // Prints out the source file
-void createToken(FILE* fileptr); // Creates tokens from the source file
-char peek(FILE *fileptr); // Peeks at the next character in the file
-int isReserved(char* lexeme); // Checks if a lexeme is a reserved word
-int isSymbol(char reader); // Checks if a character is a symbol
-int symbolCheck(char* lexeme, int lexCount); // Checks if a lexeme is a symbol
-void printReserved(char* lexeme, int token, int lexCount); // Prints a reserved word and its corresponding token
-void printNumber(char* lexeme, int lexCount); // Prints a number and its corresponding token
-void printSymbol(char* lexeme, int token, int lexCount); // Prints a symbol and its corresponding token
-void printTokenList(); // Prints the entire token list
 
 int main(int argc, char **argv) {
 	// Check if a file was included in the command line arguments

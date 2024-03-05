@@ -30,9 +30,6 @@ char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="
 
 char reservedWords[numResWords][identMax] = {"const", "var", "procedure", "call", "begin", "end", "if",
                                              "fi", "then", "else", "while", "do", "read", "write"};
-
-
-
 // Function Prototypes (HW2)
 void printSource(FILE* fileptr);
 void createToken(FILE* fileptr);
@@ -48,7 +45,7 @@ void printTokenList();
 // Function Prototypes (HW3)
 // Insert here
 
-// Token sturct for HW2
+// Define a struct for tokens
 typedef struct Tokens {
     int token;
     char number[numMax];
@@ -65,9 +62,10 @@ typedef struct Symbol
     int val; // number (ASCII value)
     int level; // L level
     int addr; // M address
-    int mark // to indicate unavailable or deleted
+    int mark; // to indicate unavailable or deleted
 } Symbol;
-symbol_table[MAX_SYMBOL_TABLE_SIZE];
+
+//symbol_table[MAX_SYMBOL_TABLE_SIZE];
 
 int main(int argc, char **argv) {
     if (argc < 2)
@@ -76,7 +74,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
     FILE* fileptr = fopen(argv[1], "r");
-    printSource(fileptr);
+//    printSource(fileptr);
     createToken(fileptr);
     fclose(fileptr);
     return 0;
@@ -84,20 +82,15 @@ int main(int argc, char **argv) {
 
 // Prints out the source file, and rewinds the fileptr
 void printSource(FILE* fileptr) {
-    printf("Source Program:\n");
-
-    int reader; // int since EOF is represented as a negative numbeer
+	int reader; // int since EOF is represented as a negative number
+	// Print each character in the file until EOF is reached
     while ((reader = getc(fileptr)) != EOF)
         putchar(reader);
     rewind(fileptr);
-    printf("\n\n\n");
     return;
 }
 
 void createToken(FILE* fileptr) {
-    printf("Lexeme Table:\n"
-           "lexeme\t\t\ttoken type\n");
-
     char reader;
     char lexeme[MAX_STRING];
     int token;
@@ -143,7 +136,7 @@ void createToken(FILE* fileptr) {
 
             // Logic to ignore comments
             if (comment == 1) {
-                if (strcmp(lexeme, "*/") == 0) 
+                if (strcmp(lexeme, "*/") == 0)
                     comment = 0;
             }
             else if (strcmp(lexeme, "/*") == 0) {
@@ -157,11 +150,12 @@ void createToken(FILE* fileptr) {
                 assignSymbol(lexeme, token, lexCount);
             }
         }
-        else 
+        else
         {
             printf("Error:\t\t\tNot a valid symbol\n");
         }
     }
+	printTokenList();
 }
 
 // Peeks at the character in front of our current reader
@@ -279,7 +273,7 @@ void assignReserved(char* lexeme, int token, int lexCount) {
     case 11: // do
         tokenList[tokenCount++].token = dosym;
         break;
-    
+
     case 12: // read
         tokenList[tokenCount++].token = readsym;
         break;
@@ -287,7 +281,7 @@ void assignReserved(char* lexeme, int token, int lexCount) {
     case 13: // write
         tokenList[tokenCount++].token = writesym;
         break;
-    
+
     default:
         printf("Something went wrong printing reserved\n");
         break;
@@ -330,7 +324,7 @@ void assignSymbol(char* lexeme, int token, int lexCount) {
         case 3:
             tokenList[tokenCount++].token = geqsym;
             break;
-        
+
         default:
             printf("Something went wrong while printing the extra symbols\n");
             break;
@@ -398,7 +392,7 @@ void assignSymbol(char* lexeme, int token, int lexCount) {
         case 11:
             tokenList[tokenCount++].token = semicolonsym;
             break;
-        
+
         default:
             printf("Something went wrong while printing the symbols\n");
             break;
@@ -408,7 +402,7 @@ void assignSymbol(char* lexeme, int token, int lexCount) {
 
 // Prints out the entire token list
 void printTokenList() {
-    printf("\nToken List:\n");
+    printf("Token List: ");
     for (int printer = 0; printer < tokenCount; printer++) {
         if (tokenList[printer].token == identsym) { // Prints out the identifier and the token
             printf("%d ", tokenList[printer].token);
@@ -421,7 +415,7 @@ void printTokenList() {
         else
             printf("%d ", tokenList[printer].token);
     }
-    printf("\n");
+
 }
 
 /*
@@ -549,7 +543,7 @@ STATEMENT
         emit WRITE
         return
 
-        
+
 CONDITION
     if token == oddsym
         get next token
