@@ -36,6 +36,7 @@ void createToken(FILE* fileptr);
 char peek(FILE *fileptr);
 int isReserved(char* lexeme);
 int isSymbol(char reader);
+
 int symbolCheck(char* lexeme, int lexCount);
 void assignReserved(char* lexeme, int token, int lexCount);
 void assignNumber(char* lexeme, int lexCount);
@@ -44,6 +45,8 @@ void printTokenList();
 
 // Function Prototypes (HW3)
 void emit(char* op, int l, int m);
+void ADD_SYMBOLTABLE(char* name, int kind, int val, int level, int addr, int mark);
+void PRINT_SYMBOLTABLE();
 int SYMBOLTABLECHECK (char* string);
 void PROGRAM();
 void BLOCK();
@@ -449,6 +452,32 @@ void emit(char* op, int l, int m) {
 
 	assembly[assIndex++] = inst; // Store instruction and increment index
 }
+// val is ascii value of the constant
+void ADD_SYMBOLTABLE(char* name, int kind, int val, int level, int addr, int mark) {
+	if (symbolIndex >= MAX_SYMBOL_TABLE_SIZE) {
+		printf("Error: Symbol table overflow\n");
+		exit(1);
+	}
+
+	Symbol sym;
+	strcpy(sym.name, name);
+	sym.kind = kind;
+	sym.val = val;
+	sym.level = level;
+	sym.addr = addr;
+	sym.mark = mark;
+
+	symbol_table[symbolIndex++] = sym;
+}
+
+void PRINT_SYMBOLTABLE() {
+	printf("Symbol Table:\n");
+	printf("Kind\tName\tVal\tLevel\tAddr\tMark\n");
+	for (int i = 0; i < symbolIndex; i++) {
+		if(symbol_table[i].kind == 2)
+			printf("%d\t%s\t%d\t%d\t%d\t%d\n", symbol_table[i].kind, symbol_table[i].name, symbol_table[i].val, symbol_table[i].level, symbol_table[i].addr, symbol_table[i].mark);
+	}
+}
 
 //linear search through symbol table looking at name
 //return index if found, -1 if not
@@ -467,9 +496,8 @@ void PROGRAM() {
     BLOCK();
     if (tokenList[tokenCount++].token != periodsym) {
         printf("Error: Program must end with period\n");
-        exit(1);
     }
-    // emit HALT; Unsure
+	emit("SYS", 0, 3); // Halt
 }
 
 // we can have a const declaration or a var declaration, or both, or neither.
@@ -478,7 +506,7 @@ void BLOCK(){
     CONST_DECLARATION();
     int numVars = VAR_DECLARATION();
     emit("INC", 0, 3 + numVars);
-    STATEMENT();
+//    STATEMENT();
 }
 
 
@@ -497,7 +525,7 @@ void CONST_DECLARATION() {
             }
 
             // Saves the name of the identifier to be used for later
-            char* identName[identMax];
+            char identName[identMax];
             strcpy(identName, tokenList[tokenCount].identifier);
             tokenCount++;
 
@@ -510,7 +538,9 @@ void CONST_DECLARATION() {
                 printf("Error: Constants must be assigned an integer value\n");
                 exit(1);
             }
-            // add to symbol table (kind 1, saved name, number, 0, 0)
+			// Assignment asks for ascii but idk why, that only works for single digit numbers.
+	        ADD_SYMBOLTABLE(identName, 1, atoi(tokenList[tokenCount].number), 0, 0, 0);
+			tokenCount++;
         } while (tokenList[tokenCount++].token == commasym);
         if (tokenList[tokenCount++].token != semicolonsym) {
             printf("Error: Constant declarations must be followed by a semicolon\n");
@@ -521,6 +551,8 @@ void CONST_DECLARATION() {
 
 
 // we can have multiple var declarations, each separated by a comma, and ending with a semicolon. returns number of variables
+// im sussed out by all the tokenList[tokenCount++]. i think we are producing off by one errors.
+// symbol table is likely not being updated with the correct values.
 int VAR_DECLARATION() {
     int numVars = 0;
     if (tokenList[tokenCount++].token == varsym)
@@ -535,8 +567,8 @@ int VAR_DECLARATION() {
                 printf("Error: Symbol name has already been declared\n");
                 exit(1);
             }
-            // add to symbol table (kind 2, ident, 0, 0, var# + 2)
-            tokenCount++;
+//			?
+	        ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 2, 0, 0, 2 + numVars, 0);
         } while (tokenList[tokenCount++].token == commasym);
         if (tokenList[tokenCount++].token != semicolonsym) {
             printf("Error: Variable declarations must be followed by a semicolon\n");
@@ -545,75 +577,78 @@ int VAR_DECLARATION() {
     return numVars;
 }
 
-/*
-// we can have a statement, or a begin statement, or an if statement, or a while statement, or a read statement, or a write statement.
-STATEMENT
-    if token == identsym
-        symIdx = SYMBOLTABLECHECK (token)
-        if symIdx == -1
-            error
-        if table[symIdx].kind != 2 (not a var)
-            error
-        get next token
-        if token != becomessym
-            error
-        get next token
-        EXPRESSION
-        emit STO (M = table[symIdx].addr)
-        return
-    if token == beginsym
-        do
-            get next token
-            STATEMENT
-        while token == semicolonsym
-        if token != endsym
-            error
-        get next token
-        return
-    if token == ifsym
-        get next token
-        CONDITION
-        jpcIdx = current code index
-        emit JPC
-        if token != thensym
-            error
-        get next token
-        STATEMENT
-        code[jpcIdx].M = current code index
-        return
-    if token == whilesym
-        get next token
-        loopIdx = current code index
-        CONDITION
-        if token != dosym
-            error
-        get next token
-        jpcIdx = current code index
-        emit JPC
-        STATEMENT
-        emit JMP (M = loopIdx)
-        code[jpcIdx].M = current code index
-        return
-    if token == readsym
-        get next token
-        if token != identsym
-            error
-        symIdx = SYMBOLTABLECHECK (token)
-        if symIdx == -1
-            error
-        if table[symIdx].kind != 2 (not a var)
-            error
-        get next token
-        emit READ
-        emit STO (M = table[symIdx].addr)
-        return
-    if token == writesym
-        get next token
-        EXPRESSION
-        emit WRITE
-        return
-*/
 
+// we can have a statement, or a begin statement, or an if statement, or a while statement, or a read statement, or a write statement.
+//void STATEMENT() {
+//	if (tokenList[tokenCount].token == identsym) {
+//		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount++].identifier);
+//		if (symIdx == -1) {
+//			printf("Error: Identifier not found\n");
+//			exit(1);
+//		}
+//		if (symbol_table[symIdx].kind != 2) { // Ensure it's a variable
+//			printf("Error: Assignment to non-variable\n");
+//			exit(1);
+//		}
+//		if (tokenList[tokenCount++].token != becomessym) {
+//			printf("Error: Expected := for assignment\n");
+//			exit(1);
+//		}
+//		EXPRESSION();
+//		emit("STO", 0, symbol_table[symIdx].addr); // Assuming addr is the address to store the value
+//	} else if (tokenList[tokenCount].token == beginsym) {
+//		tokenCount++;
+//		STATEMENT();
+//		while (tokenList[tokenCount].token == semicolonsym) {
+//			tokenCount++;
+//			STATEMENT();
+//		}
+//		if (tokenList[tokenCount++].token != endsym) {
+//			printf("Error: End of begin block expected\n");
+//			exit(1);
+//		}
+//	} else if (tokenList[tokenCount].token == ifsym) {
+//		tokenCount++;
+//		CONDITION();
+//		int jpcIdx = assIndex; // Save current index for the jump
+//		emit("JPC", 0, 0); // Placeholder for jump address
+//		if (tokenList[tokenCount++].token != thensym) {
+//			printf("Error: then expected\n");
+//			exit(1);
+//		}
+//		STATEMENT();
+//		assembly[jpcIdx].m = assIndex; // Update jump address to next instruction
+//	} else if (tokenList[tokenCount].token == whilesym) {
+//		int loopStartIdx = assIndex;
+//		tokenCount++;
+//		CONDITION();
+//		int jpcIdx = assIndex; // Save current index for conditional jump
+//		emit("JPC", 0, 0); // Placeholder for jump out of loop
+//		if (tokenList[tokenCount++].token != dosym) {
+//			printf("Error: do expected\n");
+//			exit(1);
+//		}
+//		STATEMENT();
+//		emit("JMP", 0, loopStartIdx); // Jump back to start of loop
+//		assembly[jpcIdx].m = assIndex; // Update the jump-out address
+//	} else if (tokenList[tokenCount].token == readsym) {
+//		tokenCount++;
+//		if (tokenList[tokenCount].token != identsym) {
+//			printf("Error: Identifier expected after read\n");
+//			exit(1);
+//		}
+//		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount++].identifier);
+//		if (symIdx == -1 || symbol_table[symIdx].kind != 2) {
+//			printf("Error: Read into non-variable or undeclared variable\n");
+//			exit(1);
+//		}
+//		emit("READ", 0, symbol_table[symIdx].addr);
+//	} else if (tokenList[tokenCount].token == writesym) {
+//		tokenCount++;
+//		EXPRESSION();
+//		emit("WRITE", 0, 0);
+//	}
+//}
 /*
 // we can have an odd condition, or an expression, or an expression followed by an equal, not equal, less than, less than or equal, greater than, or greater than or equal condition.
 CONDITION
