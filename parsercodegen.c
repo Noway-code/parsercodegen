@@ -54,7 +54,7 @@ typedef struct Tokens {
 Tokens tokenList[MAX_STRING];
 int tokenCount;
 
-// Symbol struct for HW3
+// Symbol struct for HW3.
 typedef struct Symbol
 {
 	char name[10]; // name up to 11 chars
@@ -64,6 +64,15 @@ typedef struct Symbol
     int addr; // M address
     int mark; // to indicate unavailable or deleted
 } Symbol;
+
+typedef struct Instruction {
+	int op; // Operation code
+	int l;  // Lexicographical level
+	int m;  // Modifier
+} Instruction;
+
+Instruction code[MAX_SYMBOL_TABLE_SIZE]; // Arbitrary size for the moment
+int codeIndex = 0;
 
 Symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 
@@ -418,6 +427,21 @@ void printTokenList() {
 
 }
 
+// Function to emit instructions to the code array. Not sure if this is correct, but it's a start.
+void emit(int op, int l, int m) {
+	if (codeIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
+		printf("Error: Code array overflow\n");
+		exit(1);
+	}
+
+	Instruction inst;
+	inst.op = op; // Set operation code
+	inst.l = l;  // Set lexicographical level
+	inst.m = m;  // Set modifier
+
+	code[codeIndex++] = inst; // Store instruction and increment index
+}
+
 //linear search through symbol table looking at name
 //return index if found, -1 if not
 int SYMBOLTABLECHECK (char* string){
@@ -431,25 +455,23 @@ int SYMBOLTABLECHECK (char* string){
 }
 
 
-/*
 // if we don't end the block with a period, error. after the block, and period, we emit a halt.
-PROGRAM
-    BLOCK
-    if token != periodsym
-        error
-    emit HALT
-*/
 
+//int PROGRAM(){
+//    BLOCK();
+//    if (tokenList[tokenCount++].token != periodsym)
+//        emit ERROR; //not sure if this is emitted.
+//    emit HLT;
+//}
 
-/*
 // we can have a const declaration or a var declaration, or both, or neither.
 // if we have a var declaration, we emit an INCREASE instruction with the number of variables.
-BLOCK
-    CONST-DECLARATION
-    numVars = VAR-DECLARATION
-    emit INC (M = 3 + numVars)
-    STATEMENT
-*/
+//void BLOCK(){
+//    CONST-DECLARATION();
+//    numVars = VAR-DECLARATION();
+//    emit INC (M = 3 + numVars)
+//    STATEMENT();
+//}
 
 /*
 // we can have multiple const declarations, each separated by a comma, and ending with a semicolon.
