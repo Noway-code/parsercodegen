@@ -29,6 +29,7 @@ char specialSymbols[numSpecSymbols] = {'+', '-', '*', '/', '(', ')', '=', ',', '
 
 char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="};
 
+// We need to remove the keywords “procedure”, “call”, and “else”
 char reservedWords[numResWords][identMax] = {"const", "var", "procedure", "call", "begin", "end", "if",
                                              "fi", "then", "else", "while", "do", "read", "write"};
 // Function Prototypes (HW2)
@@ -53,6 +54,7 @@ void PROGRAM();
 void BLOCK();
 void CONST_DECLARATION();
 int VAR_DECLARATION();
+void EXPRESSION();
 
 // Define a struct for tokens
 typedef struct Tokens {
@@ -626,6 +628,7 @@ void STATEMENT() {
 		}
 		STATEMENT();
 		assembly[jpcIdx].m = assemblyIndex; // Update jump address to next instruction
+		// must end in fisym
 	} else if (tokenList[tokenCount].token == whilesym) {
 		int loopStartIdx = assemblyIndex;
 		tokenCount++;
@@ -662,7 +665,7 @@ void STATEMENT() {
 // emits all have placeholders for the moment
 void CONDITION()
 {
-	if (token == oddsym)
+	if (tokenList[tokenCount].token == oddsym)
 	{
 		tokenCount++;
 		EXPRESSION();
@@ -671,7 +674,7 @@ void CONDITION()
 	else
 	{
 		EXPRESSION();
-		if (tokenList[tokenCount].token == eqlsym)
+		if (tokenList[tokenCount].token == eqsym)
 		{
 			tokenCount++;
 			EXPRESSION();
@@ -715,36 +718,24 @@ void CONDITION()
 	}
 }
 
-/*
 // we can have a term, or a term followed by a plus or minus, or a term followed by a plus or minus followed by another term.
-EXPRESSION (HINT: modify it to match the grammar)
-    if token == minussym
-        get next token
-        TERM
-        emit NEG
-        while token == plussym || token == minussym
-            if token == plussym
-                get next token
-                TERM
-                emit ADD
-            else
-                get next token
-                TERM
-                emit SUB
-    else
-        if token == plussym
-            get next token
-            TERM
-            while token == plussym || token == minussym
-                if token == plussym
-                    get next token
-                    TERM
-                    emit ADD
-                else
-                    get next token
-                    TERM
-                    emit SUB
-*/
+void EXPRESSION() {
+	// First term in the expression
+	TERM();
+
+	// Handle subsequent + or - operations followed by terms
+	while (tokenList[tokenCount].token == plussym || tokenList[tokenCount].token == minussym) {
+		if (tokenList[tokenCount].token == plussym) {
+			tokenCount++;
+			TERM();
+			emit("ADD", 0, 0);
+		} else if (tokenList[tokenCount].token == minussym) {
+			tokenCount++;
+			TERM();
+			emit("SUB", 0, 0);
+		}
+	}
+}
 
 // term can be a factor, or a factor followed by a multiply, divide, or mod, or a factor followed by a multiply, divide, or mod followed by another factor.
 /*
