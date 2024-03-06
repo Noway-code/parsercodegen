@@ -17,7 +17,7 @@
 #define MAX_SYMBOL_TABLE_SIZE 500
 
 typedef enum {
-    skipsym = 1, identsym, numbersym, plussym, minussym,
+    oddsym = 1, identsym, numbersym, plussym, minussym,
     multsym, slashsym, fisym, eqsym, neqsym, lessym, leqsym,
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
     periodsym, becomessym, beginsym, endsym, ifsym, thensym,
@@ -428,6 +428,7 @@ void printTokenList() {
 }
 
 // Function to emit instructions to the code array. Not sure if this is correct, but it's a start.
+// emit is called with the operation code, lexicographical level, and modifier.
 void emit(int op, int l, int m) {
 	if (codeIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
 		printf("Error: Code array overflow\n");

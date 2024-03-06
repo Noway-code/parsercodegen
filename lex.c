@@ -18,7 +18,7 @@
 
 // Define an enumeration for different types of tokens
 typedef enum {
-	skipsym = 1, identsym, numbersym, plussym, minussym,
+	oddsym = 1, identsym, numbersym, plussym, minussym,
 	multsym, slashsym, fisym, eqsym, neqsym, lessym, leqsym,
 	gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
 	periodsym, becomessym, beginsym, endsym, ifsym, thensym,
