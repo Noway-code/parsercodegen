@@ -11,9 +11,9 @@ Date:
 
 #define ARRAY_SIZE 499
 
-int BP = ARRAY_SIZE;
-int SP = ARRAY_SIZE + 1;
-int PC = 0;
+int BP = ARRAY_SIZE; // Base Pointer
+int SP = ARRAY_SIZE + 1; // Stack Pointer
+int PC = 0; // Program Counter
 
 typedef struct myStruct
 {

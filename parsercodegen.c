@@ -16,6 +16,7 @@
 #define MAX_STRING 512
 #define MAX_SYMBOL_TABLE_SIZE 500
 
+
 typedef enum {
     oddsym = 1, identsym, numbersym, plussym, minussym,
     multsym, slashsym, fisym, eqsym, neqsym, lessym, leqsym,
@@ -82,7 +83,10 @@ typedef struct Instruction {
 	int m;  // Modifier
 } Instruction;
 Instruction assembly[MAX_SYMBOL_TABLE_SIZE]; // Arbitrary size for the moment
-int assIndex = 0;
+int assemblyIndex = 0;
+
+int lexLevel;
+int address;
 
 int main(int argc, char **argv) {
     if (argc < 2)
@@ -440,7 +444,7 @@ void printTokenList() {
 // -----------------------------------------------HW3 Functions-----------------------------------------------
 // Function to emit instructions to the assembly array. Not sure if this is correct, but it's a start.
 void emit(char* op, int l, int m) {
-	if (assIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
+	if (assemblyIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
 		printf("Error: Code array overflow\n");
 		exit(1);
 	}
@@ -450,7 +454,7 @@ void emit(char* op, int l, int m) {
 	inst.l = l;  // Set lexicographical level
 	inst.m = m;  // Set modifier
 
-	assembly[assIndex++] = inst; // Store instruction and increment index
+	assembly[assemblyIndex++] = inst; // Store instruction and increment index
 }
 // val is ascii value of the constant
 void ADD_SYMBOLTABLE(char* name, int kind, int val, int level, int addr, int mark) {
@@ -552,7 +556,7 @@ void CONST_DECLARATION() {
 
 // we can have multiple var declarations, each separated by a comma, and ending with a semicolon. returns number of variables
 // im sussed out by all the tokenList[tokenCount++]. i think we are producing off by one errors.
-// symbol table is likely not being updated with the correct values.
+// symbol table is likely not being updated with the correct values ( im not sure if we are responsible for level and address in this assignment )
 int VAR_DECLARATION() {
     int numVars = 0;
     if (tokenList[tokenCount++].token == varsym)
@@ -567,7 +571,6 @@ int VAR_DECLARATION() {
                 printf("Error: Symbol name has already been declared\n");
                 exit(1);
             }
-//			?
 	        ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 2, 0, 0, 2 + numVars, 0);
         } while (tokenList[tokenCount++].token == commasym);
         if (tokenList[tokenCount++].token != semicolonsym) {
@@ -577,114 +580,140 @@ int VAR_DECLARATION() {
     return numVars;
 }
 
+// Ignore this, this is just cause my brain is fried and I keep forgetting what im writing.
+// Basically we are converting the pl0 code into a list of tokens, and then we are converting the list of tokens into a list of instructions.
+// we take possibly bad syntax pl0 code, check for errors, and then convert it into a list of instructions. We then check the syntax of the assembly instructions.
+// we are not responsible for the actual execution of the code, just the conversion of the pl0 code into a list of instructions.
+// tokens are the pl0 code, symbols are the list of instructions in assembly language.
 
-// we can have a statement, or a begin statement, or an if statement, or a while statement, or a read statement, or a write statement.
-//void STATEMENT() {
-//	if (tokenList[tokenCount].token == identsym) {
-//		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount++].identifier);
-//		if (symIdx == -1) {
-//			printf("Error: Identifier not found\n");
-//			exit(1);
-//		}
-//		if (symbol_table[symIdx].kind != 2) { // Ensure it's a variable
-//			printf("Error: Assignment to non-variable\n");
-//			exit(1);
-//		}
-//		if (tokenList[tokenCount++].token != becomessym) {
-//			printf("Error: Expected := for assignment\n");
-//			exit(1);
-//		}
+
+void STATEMENT() {
+	if (tokenList[tokenCount].token == identsym) {
+		// Check if identifier exists
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount++].identifier);
+		if (symIdx == -1) {
+			printf("Error: Identifier not found\n");
+			exit(1);
+		}
+		if (symbol_table[symIdx].kind != 2) { // Ensure it's a variable
+			printf("Error: Assignment to non-variable\n");
+			exit(1);
+		}
+		if (tokenList[tokenCount++].token != becomessym) {
+			printf("Error: Expected := for assignment\n");
+			exit(1);
+		}
 //		EXPRESSION();
-//		emit("STO", 0, symbol_table[symIdx].addr); // Assuming addr is the address to store the value
-//	} else if (tokenList[tokenCount].token == beginsym) {
-//		tokenCount++;
-//		STATEMENT();
-//		while (tokenList[tokenCount].token == semicolonsym) {
-//			tokenCount++;
-//			STATEMENT();
-//		}
-//		if (tokenList[tokenCount++].token != endsym) {
-//			printf("Error: End of begin block expected\n");
-//			exit(1);
-//		}
-//	} else if (tokenList[tokenCount].token == ifsym) {
-//		tokenCount++;
+		emit("STO", 0, symbol_table[symIdx].addr); // Assuming addr is the address to store the value
+	} else if (tokenList[tokenCount].token == beginsym) {
+		do {
+			tokenCount++;
+			STATEMENT();
+		} while (tokenList[tokenCount].token == semicolonsym);
+
+		if (tokenList[tokenCount++].token != endsym) {
+			printf("Error: End of begin block expected\n");
+			exit(1);
+		}
+	} else if (tokenList[tokenCount].token == ifsym) {
+		tokenCount++;
 //		CONDITION();
-//		int jpcIdx = assIndex; // Save current index for the jump
-//		emit("JPC", 0, 0); // Placeholder for jump address
-//		if (tokenList[tokenCount++].token != thensym) {
-//			printf("Error: then expected\n");
-//			exit(1);
-//		}
-//		STATEMENT();
-//		assembly[jpcIdx].m = assIndex; // Update jump address to next instruction
-//	} else if (tokenList[tokenCount].token == whilesym) {
-//		int loopStartIdx = assIndex;
-//		tokenCount++;
+		int jpcIdx = assemblyIndex; // Save current index for the jump
+		emit("JPC", 0, 0); // Placeholder for jump address
+		if (tokenList[tokenCount++].token != thensym) {
+			printf("Error: then expected\n");
+			exit(1);
+		}
+		STATEMENT();
+		assembly[jpcIdx].m = assemblyIndex; // Update jump address to next instruction
+	} else if (tokenList[tokenCount].token == whilesym) {
+		int loopStartIdx = assemblyIndex;
+		tokenCount++;
 //		CONDITION();
-//		int jpcIdx = assIndex; // Save current index for conditional jump
-//		emit("JPC", 0, 0); // Placeholder for jump out of loop
-//		if (tokenList[tokenCount++].token != dosym) {
-//			printf("Error: do expected\n");
-//			exit(1);
-//		}
-//		STATEMENT();
-//		emit("JMP", 0, loopStartIdx); // Jump back to start of loop
-//		assembly[jpcIdx].m = assIndex; // Update the jump-out address
-//	} else if (tokenList[tokenCount].token == readsym) {
-//		tokenCount++;
-//		if (tokenList[tokenCount].token != identsym) {
-//			printf("Error: Identifier expected after read\n");
-//			exit(1);
-//		}
-//		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount++].identifier);
-//		if (symIdx == -1 || symbol_table[symIdx].kind != 2) {
-//			printf("Error: Read into non-variable or undeclared variable\n");
-//			exit(1);
-//		}
-//		emit("READ", 0, symbol_table[symIdx].addr);
-//	} else if (tokenList[tokenCount].token == writesym) {
-//		tokenCount++;
+		int jpcIdx = assemblyIndex; // Save current index for conditional jump
+		emit("JPC", 0, 0); // Placeholder for jump out of loop
+		if (tokenList[tokenCount++].token != dosym) {
+			printf("Error: do expected\n");
+			exit(1);
+		}
+		STATEMENT();
+		emit("JMP", 0, loopStartIdx); // Jump back to start of loop
+		assembly[jpcIdx].m = assemblyIndex; // Update the jump-out address
+	} else if (tokenList[tokenCount].token == readsym) {
+		tokenCount++;
+		if (tokenList[tokenCount].token != identsym) {
+			printf("Error: Identifier expected after read\n");
+			exit(1);
+		}
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount++].identifier);
+		if (symIdx == -1 || symbol_table[symIdx].kind != 2) {
+			printf("Error: Read into non-variable or undeclared variable\n");
+			exit(1);
+		}
+		emit("READ", 0, symbol_table[symIdx].addr);
+	} else if (tokenList[tokenCount].token == writesym) {
+		tokenCount++;
 //		EXPRESSION();
-//		emit("WRITE", 0, 0);
-//	}
-//}
-/*
-// we can have an odd condition, or an expression, or an expression followed by an equal, not equal, less than, less than or equal, greater than, or greater than or equal condition.
-CONDITION
-    if token == oddsym
-        get next token
-        EXPRESSION
-        emit ODD
-    else
-        EXPRESSION
-        if token == eqlsym
-            get next token
-            EXPRESSION
-            emit EQL
-        else if token == neqsym
-            get next token
-            EXPRESSION
-            emit NEQ
-        else if token == lessym
-            get next token
-            EXPRESSION
-            emit LSS
-        else if token == leqsym
-            get next token
-            EXPRESSION
-            emit LEQ
-        else if token == gtrsym
-            get next token
-            EXPRESSION
-            emit GTR
-        else if token == geqsym
-            get next token
-            EXPRESSION
-            emit GEQ
-        else
-            error
-*/
+		emit("WRITE", 0, 0);
+	}
+}
+
+
+// emits all have placeholders for the moment
+void CONDITION()
+{
+	if (token == oddsym)
+	{
+		tokenCount++;
+		EXPRESSION();
+		emit("ODD", 0, 0);
+	}
+	else
+	{
+		EXPRESSION();
+		if (tokenList[tokenCount].token == eqlsym)
+		{
+			tokenCount++;
+			EXPRESSION();
+			emit("EQL", 0, 0);
+		}
+		else if (tokenList[tokenCount].token == neqsym)
+		{
+			tokenCount++;
+			EXPRESSION();
+			emit("NEQ", 0, 0);
+		}
+		else if (tokenList[tokenCount].token == lessym)
+		{
+			tokenCount++;
+			EXPRESSION();
+			emit("LSS", 0, 0);
+		}
+		else if (tokenList[tokenCount].token == leqsym)
+		{
+			tokenCount++;
+			EXPRESSION();
+			emit("LEQ", 0, 0);
+		}
+		else if (tokenList[tokenCount].token == gtrsym)
+		{
+			tokenCount++;
+			EXPRESSION();
+			emit("GTR", 0, 0);
+		}
+		else if (tokenList[tokenCount].token == geqsym)
+		{
+			tokenCount++;
+			EXPRESSION();
+			emit("GEQ", 0, 0);
+		}
+		else
+		{
+			printf("Error: Invalid condition\n");
+			exit(1);
+		}
+	}
+}
 
 /*
 // we can have a term, or a term followed by a plus or minus, or a term followed by a plus or minus followed by another term.
