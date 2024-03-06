@@ -43,7 +43,12 @@ void assignSymbol(char* lexeme, int token, int lexCount);
 void printTokenList();
 
 // Function Prototypes (HW3)
-// Insert here
+void emit(char* op, int l, int m);
+int SYMBOLTABLECHECK (char* string);
+void PROGRAM();
+void BLOCK();
+void CONST_DECLARATION();
+int VAR_DECLARATION();
 
 // Define a struct for tokens
 typedef struct Tokens {
@@ -64,17 +69,17 @@ typedef struct Symbol
     int addr; // M address
     int mark; // to indicate unavailable or deleted
 } Symbol;
+Symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+int symbolIndex = 0;
+
 
 typedef struct Instruction {
-	int op; // Operation code
+	char* op; // Operation code
 	int l;  // Lexicographical level
 	int m;  // Modifier
 } Instruction;
-
-Instruction code[MAX_SYMBOL_TABLE_SIZE]; // Arbitrary size for the moment
-int codeIndex = 0;
-
-Symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+Instruction assembly[MAX_SYMBOL_TABLE_SIZE]; // Arbitrary size for the moment
+int assIndex = 0;
 
 int main(int argc, char **argv) {
     if (argc < 2)
@@ -89,6 +94,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+// -----------------------------------------------HW2 Functions-----------------------------------------------
 // Prints out the source file, and rewinds the fileptr
 void printSource(FILE* fileptr) {
 	int reader; // int since EOF is represented as a negative number
@@ -427,20 +433,21 @@ void printTokenList() {
 
 }
 
-// Function to emit instructions to the code array. Not sure if this is correct, but it's a start.
-// emit is called with the operation code, lexicographical level, and modifier.
-void emit(int op, int l, int m) {
-	if (codeIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
+
+// -----------------------------------------------HW3 Functions-----------------------------------------------
+// Function to emit instructions to the assembly array. Not sure if this is correct, but it's a start.
+void emit(char* op, int l, int m) {
+	if (assIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
 		printf("Error: Code array overflow\n");
 		exit(1);
 	}
 
 	Instruction inst;
-	inst.op = op; // Set operation code
+	strcpy(inst.op, op); // Set operation code
 	inst.l = l;  // Set lexicographical level
 	inst.m = m;  // Set modifier
 
-	code[codeIndex++] = inst; // Store instruction and increment index
+	assembly[assIndex++] = inst; // Store instruction and increment index
 }
 
 //linear search through symbol table looking at name
@@ -451,74 +458,92 @@ int SYMBOLTABLECHECK (char* string){
 			return i;
 		}
 	}
-
 	return -1;
 }
 
-
 // if we don't end the block with a period, error. after the block, and period, we emit a halt.
-
-//int PROGRAM(){
-//    BLOCK();
-//    if (tokenList[tokenCount++].token != periodsym)
-//        emit ERROR; //not sure if this is emitted.
-//    emit HLT;
-//}
+void PROGRAM() {
+    tokenCount = 0; // Resets the tokenCount so it reads from the start of the Token list
+    BLOCK();
+    if (tokenList[tokenCount++].token != periodsym) {
+        printf("Error: Program must end with period\n");
+        exit(1);
+    }
+    // emit HALT; Unsure
+}
 
 // we can have a const declaration or a var declaration, or both, or neither.
 // if we have a var declaration, we emit an INCREASE instruction with the number of variables.
-//void BLOCK(){
-//    CONST-DECLARATION();
-//    numVars = VAR-DECLARATION();
-//    emit INC (M = 3 + numVars)
-//    STATEMENT();
-//}
+void BLOCK(){
+    CONST_DECLARATION();
+    int numVars = VAR_DECLARATION();
+    emit("INC", 0, 3 + numVars);
+    STATEMENT();
+}
 
-/*
+
 // we can have multiple const declarations, each separated by a comma, and ending with a semicolon.
-CONST-DECLARATION
-    if token == const
-        do
-            get next token
-            if token != identsym
-                error
-            if SYMBOLTABLECHECK (token) != -1
-                error
-            save ident name
-            get next token
-            if token != eqlsym
-                error
-            get next token
-            if token != numbersym
-                error
-            add to symbol table (kind 1, saved name, number, 0, 0)
-            get next token
-        while token == commasym
-        if token != semicolonsym
-            error
-        get next token
-*/
+void CONST_DECLARATION() {
+    if (tokenList[tokenCount++].token == constsym)
+        do {
+            if (tokenList[tokenCount++].token != identsym) {
+                printf("Error: Const keywords must be followed by identifiers\n");
+                exit(1);
+            }
 
-/*
+            if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier) != -1) {
+                printf("Error: Symbol name has already been declared\n");
+                exit(1);
+            }
+
+            // Saves the name of the identifier to be used for later
+            char* identName[identMax];
+            strcpy(identName, tokenList[tokenCount].identifier);
+            tokenCount++;
+
+            if (tokenList[tokenCount++].token != eqsym) {
+                printf("Error: Constants must be assigned with =\n");
+                exit(1);
+            }
+
+            if (tokenList[tokenCount++].token != numbersym) {
+                printf("Error: Constants must be assigned an integer value\n");
+                exit(1);
+            }
+            // add to symbol table (kind 1, saved name, number, 0, 0)
+        } while (tokenList[tokenCount++].token == commasym);
+        if (tokenList[tokenCount++].token != semicolonsym) {
+            printf("Error: Constant declarations must be followed by a semicolon\n");
+            exit(1);
+        }
+}
+
+
+
 // we can have multiple var declarations, each separated by a comma, and ending with a semicolon. returns number of variables
-VAR-DECLARATION – returns number of variables
-    numVars = 0
-    if token == varsym
-        do
-            numVars++
-            get next token
-            if token != identsym
-                error
-            if SYMBOLTABLECHECK (token) != -1
-                error
-            add to symbol table (kind 2, ident, 0, 0, var# + 2)
-            get next token
-        while token == commasym
-        if token != semicolonsym
-            error
-        get next token
-    return numVars
-*/
+int VAR_DECLARATION() {
+    int numVars = 0;
+    if (tokenList[tokenCount++].token == varsym)
+        do {
+            numVars++;
+            if (tokenList[tokenCount++].token != identsym){
+                printf("Error: Const keywords must be followed by identifiers\n");
+                exit(1);
+            }
+
+            if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier) != -1) {
+                printf("Error: Symbol name has already been declared\n");
+                exit(1);
+            }
+            // add to symbol table (kind 2, ident, 0, 0, var# + 2)
+            tokenCount++;
+        } while (tokenList[tokenCount++].token == commasym);
+        if (tokenList[tokenCount++].token != semicolonsym) {
+            printf("Error: Variable declarations must be followed by a semicolon\n");
+            exit(1);
+        }
+    return numVars;
+}
 
 /*
 // we can have a statement, or a begin statement, or an if statement, or a while statement, or a read statement, or a write statement.
