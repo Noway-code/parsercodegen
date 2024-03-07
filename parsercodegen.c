@@ -455,6 +455,7 @@ void printTokenList() {
 // -----------------------------------------------HW3 Functions-----------------------------------------------
 // Function to emit instructions to the assembly array. Not sure if this is correct, but it's a start.
 void emit(char* op, int l, int m) {
+    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (assemblyIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
 		printf("Error: Code array overflow\n");
 		exit(1);
@@ -522,7 +523,7 @@ void PROGRAM() {
 void BLOCK(){
     CONST_DECLARATION();
     int numVars = VAR_DECLARATION();
-    emit("INC", 0, 3 + numVars);
+    // emit("INC", 0, 3 + numVars);
     STATEMENT();
 }
 
@@ -777,6 +778,7 @@ void EXPRESSION() {
 
 void TERM()
 {
+    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	FACTOR();
 	while (tokenList[tokenCount].token == multsym || tokenList[tokenCount].token == slashsym)
 	{
@@ -798,6 +800,7 @@ void TERM()
 // factor can be an identifier, a number, a left parenthesis followed by an expression followed by a right parenthesis, or an error.
 void FACTOR()
 {
+    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (tokenList[tokenCount].token == identsym)
 	{
 		// Check if identifier exists
