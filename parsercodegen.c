@@ -55,6 +55,8 @@ void BLOCK();
 void CONST_DECLARATION();
 int VAR_DECLARATION();
 void EXPRESSION();
+void TERM();
+void FACTOR();
 
 // Define a struct for tokens
 typedef struct Tokens {
@@ -737,46 +739,62 @@ void EXPRESSION() {
 	}
 }
 
-// term can be a factor, or a factor followed by a multiply, divide, or mod, or a factor followed by a multiply, divide, or mod followed by another factor.
-/*
-TERM
-    FACTOR
-    while token == multsym || token == slashsym || token == modsym
-        if token == multsym
-            get next token
-            FACTOR
-            emit MUL
-        else if token == slashsym
-            get next token
-            FACTOR
-            emit DIV
-        else
-            get next token
-            FACTOR
-            emit MOD
-*/
+void TERM()
+{
+	FACTOR();
+	while (tokenList[tokenCount].token == multsym || tokenList[tokenCount].token == slashsym)
+	{
+		if (tokenList[tokenCount].token == multsym)
+		{
+			tokenCount++;
+			FACTOR();
+			emit("MUL",0,0);
+		}
+		else if (tokenList[tokenCount].token == slashsym)
+		{
+			tokenCount++;
+			FACTOR();
+			emit("DIV",0,0);
+		}
+	}
+}
 
-/*
 // factor can be an identifier, a number, a left parenthesis followed by an expression followed by a right parenthesis, or an error.
-FACTOR
-    if token == identsym
-        symIdx = SYMBOLTABLECHECK (token)
-        if symIdx == -1
-            error
-        if table[symIdx].kind == 1 (const)
-            emit LIT (M = table[symIdx].Value)
-        else (var)
-            emit LOD (M = table[symIdx].addr)
-        get next token
-    else if token == numbersym
-        emit LIT
-        get next token
-    else if token == lparentsym
-        get next token
-        EXPRESSION
-        if token != rparentsym
-            error
-        get next token
-    else
-        error
-*/
+void FACTOR()
+{
+	if (tokenList[tokenCount].token == identsym)
+	{
+		// Check if identifier exists
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
+		if (symIdx == -1) {
+			printf("Error: Identifier not found\n");
+			exit(1);
+		}
+		if (symbol_table[symIdx].kind == 1)
+			emit("LIT",0,symbol_table[symIdx].val);
+		else
+			emit("LOD", 0, symbol_table[symIdx].addr);
+		tokenCount++;
+	}
+	else if (tokenList[tokenCount].token == numbersym)
+	{
+		// Lit twice in FACTOR?
+		// emit("LIT",0,?);
+		tokenCount++;
+	}
+	else if (tokenList[tokenCount].token == lparentsym)
+	{
+		EXPRESSION();
+		if (tokenList[tokenCount].token != rparentsym)
+		{
+			printf("Error: Right parenthesis expected\n");
+			exit(1);
+		}
+		tokenCount++;
+	}
+	else
+	{
+		printf("Error: Invalid factor\n");
+		exit(1);
+	}
+}
