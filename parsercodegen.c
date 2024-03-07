@@ -108,6 +108,9 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+// Get rid of later
+int checkCount = 1;
+
 // -----------------------------------------------HW2 Functions-----------------------------------------------
 // Prints out the source file, and rewinds the fileptr
 void printSource(FILE* fileptr) {
@@ -526,7 +529,7 @@ void BLOCK(){
 
 // we can have multiple const declarations, each separated by a comma, and ending with a semicolon.
 void CONST_DECLARATION() {
-    if (tokenList[tokenCount].token == constsym)
+    if (tokenList[tokenCount].token == constsym) {
         do {
             tokenCount++;
             if (tokenList[tokenCount].token != identsym) {
@@ -564,6 +567,7 @@ void CONST_DECLARATION() {
             exit(1);
         }
         tokenCount++;
+    }
 }
 
 
@@ -573,11 +577,14 @@ void CONST_DECLARATION() {
 // symbol table is likely not being updated with the correct values ( im not sure if we are responsible for level and address in this assignment )
 int VAR_DECLARATION() {
     int numVars = 0;
-    if (tokenList[tokenCount].token == varsym)
+    if (tokenList[tokenCount].token == varsym) {
         do {
             numVars++;
+            printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+            tokenCount++;
+            printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
             if (tokenList[tokenCount].token != identsym){
-                printf("Error: Const keywords must be followed by identifiers\n");
+                printf("Error: Var keywords must be followed by identifiers\n");
                 exit(1);
             }
 
@@ -593,6 +600,7 @@ int VAR_DECLARATION() {
             exit(1);
         }
         tokenCount++;
+    }
     return numVars;
 }
 
