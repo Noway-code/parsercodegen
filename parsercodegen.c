@@ -462,7 +462,8 @@ void emit(char* op, int l, int m) {
 	}
 
 	Instruction inst;
-	strcpy(inst.op, op); // Set operation code
+	strncpy(inst.op, op, sizeof(inst.op) - 1);
+	inst.op[sizeof(inst.op) - 1] = '\0';
 	inst.l = l;  // Set lexicographical level
 	inst.m = m;  // Set modifier
 
@@ -516,6 +517,7 @@ void PROGRAM() {
         printf("Error: Program must end with period\n");
     }
 	emit("SYS", 0, 3); // Halt
+	PRINT_SYMBOLTABLE();
 }
 
 // we can have a const declaration or a var declaration, or both, or neither.
@@ -578,12 +580,12 @@ void CONST_DECLARATION() {
 // symbol table is likely not being updated with the correct values ( im not sure if we are responsible for level and address in this assignment )
 int VAR_DECLARATION() {
     int numVars = 0;
+	printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
     if (tokenList[tokenCount].token == varsym) {
         do {
             numVars++;
-            printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
             tokenCount++;
-            printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+	        printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
             if (tokenList[tokenCount].token != identsym){
                 printf("Error: Var keywords must be followed by identifiers\n");
                 exit(1);
@@ -631,6 +633,7 @@ void STATEMENT() {
 			printf("Error: Expected := for assignment\n");
 			exit(1);
 		}
+		tokenCount++;
 		EXPRESSION();
 		emit("STO", 0, symbol_table[symIdx].addr); // Assuming addr is the address to store the value
 
@@ -778,7 +781,7 @@ void EXPRESSION() {
 
 void TERM()
 {
-    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+	printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	FACTOR();
 	while (tokenList[tokenCount].token == multsym || tokenList[tokenCount].token == slashsym)
 	{
