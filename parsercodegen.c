@@ -29,7 +29,7 @@ char specialSymbols[numSpecSymbols] = {'+', '-', '*', '/', '(', ')', '=', ',', '
 
 char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="};
 
-// We need to remove the keywords “procedure”, “call”, and “else”
+// TODO: We need to remove the keywords “procedure”, “call”, and “else”
 char reservedWords[numResWords][identMax] = {"const", "var", "procedure", "call", "begin", "end", "if",
                                              "fi", "then", "else", "while", "do", "read", "write"};
 // Function Prototypes (HW2)
@@ -488,7 +488,18 @@ void ADD_SYMBOLTABLE(char* name, int kind, int val, int level, int addr, int mar
 	symbol_table[symbolIndex++] = sym;
 }
 
+void PRINT_ASS(){
+	printf("Assembly Table:\n");
+	printf("Line\tOP\tL\tM\n");
+	for (int i = 0; i < assemblyIndex; ++i)
+	{
+		printf("%d\t%s\t%d\t%d\n",i,assembly[i].op,assembly[i].l,assembly[i].m);
+	}
+}
+
 void PRINT_SYMBOLTABLE() {
+	PRINT_ASS();
+
 	printf("Symbol Table:\n");
 	printf("Kind\tName\tVal\tLevel\tAddr\tMark\n");
 	for (int i = 0; i < symbolIndex; i++) {
@@ -661,7 +672,7 @@ void STATEMENT() {
         tokenCount++;
 		STATEMENT();
 		assembly[jpcIdx].m = assemblyIndex; // Update jump address to next instruction
-		// must end in fisym
+		// TODO: must end in fisym
 
 	} else if (tokenList[tokenCount].token == whilesym) {
 		int loopStartIdx = assemblyIndex;
@@ -701,7 +712,6 @@ void STATEMENT() {
 		emit("WRITE", 0, 0);
 	}
 }
-
 
 // emits all have placeholders for the moment
 void CONDITION()
