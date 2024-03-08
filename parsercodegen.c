@@ -84,7 +84,7 @@ int symbolIndex = 0;
 
 
 typedef struct Instruction {
-	char* op; // Operation code
+	char op[11]; // Operation code
 	int l;  // Lexicographical level
 	int m;  // Modifier
 } Instruction;
@@ -523,7 +523,7 @@ void PROGRAM() {
 void BLOCK(){
     CONST_DECLARATION();
     int numVars = VAR_DECLARATION();
-    // emit("INC", 0, 3 + numVars);
+	emit("INC", 0, 3 + numVars);
     STATEMENT();
 }
 
