@@ -1,1 +1,2 @@
 var x; const x = 10;
+Works, wrong response

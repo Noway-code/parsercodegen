@@ -526,6 +526,7 @@ void PROGRAM() {
     BLOCK();
     if (tokenList[tokenCount].token != periodsym) {
         printf("Error: Program must end with period\n");
+        exit(1);
     }
 	emit("SYS", 0, 3); // Halt
 	PRINT_SYMBOLTABLE();
@@ -764,7 +765,7 @@ void CONDITION()
 		}
 		else
 		{
-			printf("Error: Invalid condition\n");
+			printf("Error: Condition must contain a comparison operator\n");
 			exit(1);
 		}
 	}
@@ -791,7 +792,7 @@ void EXPRESSION() {
 
 void TERM()
 {
-	printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+	printf("Current token Yippe: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	FACTOR();
 	while (tokenList[tokenCount].token == multsym || tokenList[tokenCount].token == slashsym)
 	{
@@ -813,7 +814,7 @@ void TERM()
 // factor can be an identifier, a number, a left parenthesis followed by an expression followed by a right parenthesis, or an error.
 void FACTOR()
 {
-    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+    printf("Current token Yippee?: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (tokenList[tokenCount].token == identsym)
 	{
 		// Check if identifier exists
@@ -846,7 +847,7 @@ void FACTOR()
 	}
 	else
 	{
-		printf("Error: Invalid factor\n");
+		printf("Error: Arithmetic equations must contain operands, parentheses, numbers, or symbols\n");
 		exit(1);
 	}
 }

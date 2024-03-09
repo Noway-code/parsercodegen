@@ -19,7 +19,7 @@ declare -a passedTests
 declare -a failedTests
 
 # Iterate over all files in the test case directory
-for testFile in "$testCaseDir"/*; do
+for testFile in "$testCases"/*; do
     # Extract the name of the file for printing
     fileName=$(basename "$testFile")
     simplifiedFileName=$(simplify_string "$fileName")

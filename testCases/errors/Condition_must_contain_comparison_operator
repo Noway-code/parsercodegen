@@ -1,1 +1,2 @@
 if x then begin end.
+Works, doesn't give proper error
