@@ -447,7 +447,7 @@ void printTokenList() {
 // -----------------------------------------------HW3 Functions-----------------------------------------------
 // Function to emit instructions to the assembly array. Not sure if this is correct, but it's a start.
 void emit(char* op, int l, int m) {
-    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+//    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (assemblyIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
 		printf("Error: Code array overflow\n");
 		exit(1);
@@ -516,7 +516,7 @@ void PROGRAM() {
     emit("JPC", 0, 3);
     tokenCount = 0; // Resets the tokenCount so it reads from the start of the Token list
     BLOCK();
-    printf("Current token end: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+//    printf("Current token end: %d | %d\n", checkCount++, tokenList[tokenCount].token);
     if (tokenList[tokenCount].token != periodsym) {
         printf("Error: Program must end with period\n");
         exit(1);
@@ -585,12 +585,12 @@ void CONST_DECLARATION() {
 // symbol table is likely not being updated with the correct values ( im not sure if we are responsible for level and address in this assignment )
 int VAR_DECLARATION() {
     int numVars = 0;
-	printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+//	printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
     if (tokenList[tokenCount].token == varsym) {
         do {
             numVars++;
             tokenCount++;
-	        printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+//	        printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
             if (tokenList[tokenCount].token != identsym){
                 printf("Error: Var keywords must be followed by identifiers\n");
                 exit(1);
@@ -666,6 +666,11 @@ void STATEMENT() {
         tokenCount++;
 		STATEMENT();
 		assembly[jpcIdx].m = assemblyIndex; // Update jump address to next instruction
+		if (tokenList[tokenCount].token != fisym) {
+			printf("Error: then must be followed by fi\n");
+			exit(1);
+		}
+		tokenCount++;
 
 	} else if (tokenList[tokenCount].token == whilesym) {
 		int loopStartIdx = assemblyIndex;
@@ -784,7 +789,7 @@ void EXPRESSION() {
 
 void TERM()
 {
-	printf("Current token Yippe: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+//	printf("Current token Yippe: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	FACTOR();
 	while (tokenList[tokenCount].token == multsym || tokenList[tokenCount].token == slashsym)
 	{
@@ -802,11 +807,12 @@ void TERM()
 		}
 	}
 }
+// #todo figure out mark
 
 // factor can be an identifier, a number, a left parenthesis followed by an expression followed by a right parenthesis, or an error.
 void FACTOR()
 {
-    printf("Current token Yippee?: %d | %d\n", checkCount++, tokenList[tokenCount].token);
+//    printf("Current token Yippee?: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (tokenList[tokenCount].token == identsym)
 	{
 		// Check if identifier exists

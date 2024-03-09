@@ -1,0 +1,1 @@
+const max = 10; var x; begin x := 0; while x < max do begin x := x + 1; write x end end.
