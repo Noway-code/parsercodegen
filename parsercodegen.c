@@ -630,18 +630,18 @@ void STATEMENT() {
 		// Check if identifier exists
 		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
 		if (symIdx == -1) {
-			printf("Error: Identifier not found\n");
+			printf("Error: Undeclared identifier\n");
 			exit(1);
 		}
 		if (symbol_table[symIdx].kind != 2) { // Ensure it's a variable
-			printf("Error: Assignment to non-variable\n");
+			printf("Error: Only variable values may be altered\n");
 			exit(1);
 		}
 
         tokenCount++;
 
 		if (tokenList[tokenCount].token != becomessym) {
-			printf("Error: Expected := for assignment\n");
+			printf("Error: Assignment statements must use :=\n");
 			exit(1);
 		}
 		tokenCount++;
@@ -655,7 +655,7 @@ void STATEMENT() {
 		} while (tokenList[tokenCount].token == semicolonsym);
 
 		if (tokenList[tokenCount].token != endsym) {
-			printf("Error: End of begin block expected\n");
+			printf("Error: begin must be followed by end\n");
 			exit(1);
 		}
         tokenCount++;
@@ -691,7 +691,7 @@ void STATEMENT() {
 	} else if (tokenList[tokenCount].token == readsym) {
 		tokenCount++;
 		if (tokenList[tokenCount].token != identsym) {
-			printf("Error: Identifier expected after read\n");
+			printf("Error: read keywords must be followed by identifier\n");
 			exit(1);
 		}
 		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
@@ -839,7 +839,7 @@ void FACTOR()
 		EXPRESSION();
 		if (tokenList[tokenCount].token != rparentsym)
 		{
-			printf("Error: Right parenthesis expected\n");
+			printf("Error: Right parenthesis must follow left parenthesis\n");
 			exit(1);
 		}
 		tokenCount++;
