@@ -22,16 +22,15 @@ typedef enum {
     multsym, slashsym, fisym, eqsym, neqsym, lessym, leqsym,
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
     periodsym, becomessym, beginsym, endsym, ifsym, thensym,
-    whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
-    readsym , elsesym} token_type;
+    whilesym, dosym, constsym, varsym, writesym,
+    readsym} token_type;
 
 char specialSymbols[numSpecSymbols] = {'+', '-', '*', '/', '(', ')', '=', ',', '.', '<', '>', ';', ':'};
 
 char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="};
 
-// TODO: We need to remove the keywords “procedure”, “call”, and “else”
-char reservedWords[numResWords][identMax] = {"const", "var", "procedure", "call", "begin", "end", "if",
-                                             "fi", "then", "else", "while", "do", "read", "write"};
+char reservedWords[numResWords][identMax] = {"const", "var", "begin", "end", "if",
+                                             "fi", "then", "while", "do", "read", "write"};
 // Function Prototypes (HW2)
 void printSource(FILE* fileptr);
 void createToken(FILE* fileptr);
@@ -251,74 +250,67 @@ void assignReserved(char* lexeme, int token, int lexCount) {
     }
 
     // Checks which reserved word to print out
-    switch (token) {
-    case -1: // Prints out the identifier
-        tokenList[tokenCount].token = identsym;
-        strcpy(tokenList[tokenCount].identifier, lexeme);
-        tokenCount++;
-        break;
+    switch (token)
+    {
+	    case -1: // Prints out the identifier
+		    tokenList[tokenCount].token = identsym;
+		    strcpy(tokenList[tokenCount].identifier, lexeme);
+		    tokenCount++;
+		    break;
 
-    case 0: // const
-        tokenList[tokenCount++].token = constsym;
-        break;
+	    case 0: // const
+		    tokenList[tokenCount++].token = constsym;
+		    break;
 
-    case 1: // var
-        tokenList[tokenCount++].token = varsym;
-        break;
+	    case 1: // var
+		    tokenList[tokenCount++].token = varsym;
+		    break;
 
-    case 2: // procedure
-        tokenList[tokenCount++].token = procsym;
-        break;
+		    // Removed case 2: procsym
+		    // Removed case 3: callsym
 
-    case 3: // call
-        tokenList[tokenCount++].token = callsym;
-        break;
+	    case 2: // begin (previously case 4)
+		    tokenList[tokenCount++].token = beginsym;
+		    break;
 
-    case 4: // begin
-        tokenList[tokenCount++].token = beginsym;
-        break;
+	    case 3: // end (previously case 5)
+		    tokenList[tokenCount++].token = endsym;
+		    break;
 
-    case 5: // end
-        tokenList[tokenCount++].token = endsym;
-        break;
+	    case 4: // if (previously case 6)
+		    tokenList[tokenCount++].token = ifsym;
+		    break;
 
-    case 6: // if
-        tokenList[tokenCount++].token = ifsym;
-        break;
+	    case 5: // fi (previously case 7)
+		    tokenList[tokenCount++].token = fisym;
+		    break;
 
-    case 7: // fi
-        tokenList[tokenCount++].token = fisym;
-        break;
+	    case 6: // then (previously case 8)
+		    tokenList[tokenCount++].token = thensym;
+		    break;
 
-    case 8: // then
-        tokenList[tokenCount++].token = thensym;
-        break;
+		    // Removed case 9: elsesym
 
-    case 9: // else
-        tokenList[tokenCount++].token = elsesym;
-        break;
+	    case 7: // while (previously case 10)
+		    tokenList[tokenCount++].token = whilesym;
+		    break;
 
-    case 10: // while
-        tokenList[tokenCount++].token = whilesym;
-        break;
+	    case 8: // do (previously case 11)
+		    tokenList[tokenCount++].token = dosym;
+		    break;
 
-    case 11: // do
-        tokenList[tokenCount++].token = dosym;
-        break;
+	    case 9: // read (previously case 12)
+		    tokenList[tokenCount++].token = readsym;
+		    break;
 
-    case 12: // read
-        tokenList[tokenCount++].token = readsym;
-        break;
+	    case 10: // write (previously case 13)
+		    tokenList[tokenCount++].token = writesym;
+		    break;
 
-    case 13: // write
-        tokenList[tokenCount++].token = writesym;
-        break;
-
-    default:
-        printf("Something went wrong printing reserved\n");
-        break;
+	    default:
+		    printf("Something went wrong printing reserved\n");
+		    break;
     }
-
 }
 
 // Prints the number and numbersym
@@ -564,7 +556,7 @@ void CONST_DECLARATION() {
             tokenCount++;
 
             if (tokenList[tokenCount].token != eqsym) {
-                printf("Error: Constants must be assigned with =\n");
+                printf("Error: Constants must be assigned with equals\n");
                 exit(1);
             }
 
@@ -643,7 +635,7 @@ void STATEMENT() {
         tokenCount++;
 
 		if (tokenList[tokenCount].token != becomessym) {
-			printf("Error: Assignment statements must use :=\n");
+			printf("Error: Assignment statements must use assignment operator\n");
 			exit(1);
 		}
 		tokenCount++;
@@ -668,20 +660,19 @@ void STATEMENT() {
 		int jpcIdx = assemblyIndex; // Save current index for the jump
 		emit("JPC", 0, 0); // Placeholder for jump address
 		if (tokenList[tokenCount].token != thensym) {
-			printf("Error: then expected\n");
+			printf("Error: if must be followed by then\n");
 			exit(1);
 		}
         tokenCount++;
 		STATEMENT();
 		assembly[jpcIdx].m = assemblyIndex; // Update jump address to next instruction
-		// TODO: must end in fisym
 
 	} else if (tokenList[tokenCount].token == whilesym) {
 		int loopStartIdx = assemblyIndex;
 		tokenCount++;
 		CONDITION();
 		if (tokenList[tokenCount++].token != dosym) {
-			printf("Error: do expected\n");
+			printf("Error: while must be followed by do\n");
 			exit(1);
 		}
         int jpcIdx = assemblyIndex; // Save current index for conditional jump
