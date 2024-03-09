@@ -1,3 +1,2 @@
 var x;
 while x < 10 begin end.
-works

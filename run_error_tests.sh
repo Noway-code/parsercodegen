@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directory containing the error test cases
-testCaseDir="./testCases/errors"
+testCaseDir="/home/noway/CLionProjects/parsercodegen/testCases/errors"
 
 # Check if parsercodegen executable exists
 if [ ! -f "./parsercodegen" ]; then
@@ -19,7 +19,7 @@ declare -a passedTests
 declare -a failedTests
 
 # Iterate over all files in the test case directory
-for testFile in "$testCases"/*; do
+for testFile in "$testCaseDir"/*; do
     # Extract the name of the file for printing
     fileName=$(basename "$testFile")
     simplifiedFileName=$(simplify_string "$fileName")
@@ -45,6 +45,7 @@ for testFile in "$testCases"/*; do
 
     echo "----------------------------------------------------"
 done
+
 
 # Print summary table
 echo "Summary of Test Results"
