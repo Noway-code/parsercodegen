@@ -524,6 +524,7 @@ void PROGRAM() {
     emit("JPC", 0, 3);
     tokenCount = 0; // Resets the tokenCount so it reads from the start of the Token list
     BLOCK();
+    printf("Current token end: %d | %d\n", checkCount++, tokenList[tokenCount].token);
     if (tokenList[tokenCount].token != periodsym) {
         printf("Error: Program must end with period\n");
         exit(1);
@@ -820,7 +821,7 @@ void FACTOR()
 		// Check if identifier exists
 		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
 		if (symIdx == -1) {
-			printf("Error: Identifier not found\n");
+			printf("Error: Identifier undeclared\n");
 			exit(1);
 		}
 		if (symbol_table[symIdx].kind == 1)

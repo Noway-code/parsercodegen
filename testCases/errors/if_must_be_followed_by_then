@@ -1,2 +1,2 @@
-if x = 10 begin end.
-Works, wrong response
+var x; if x = 10 begin end.
+Works

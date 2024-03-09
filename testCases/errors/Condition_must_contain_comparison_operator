@@ -1,2 +1,2 @@
-if x then begin end.
-Works, doesn't give proper error
+var x; if x then begin end.
+Works
