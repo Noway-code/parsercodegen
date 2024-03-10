@@ -1,0 +1,2 @@
+var x; begin x = 10; end.
+Error: Assignment statements must use assignment operator

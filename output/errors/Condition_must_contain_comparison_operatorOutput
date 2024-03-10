@@ -1,0 +1,2 @@
+var x; if x then begin end.
+Error: Condition must contain a comparison operator

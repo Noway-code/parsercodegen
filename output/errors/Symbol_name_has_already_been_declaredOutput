@@ -1,0 +1,2 @@
+var x, x; begin end.
+Error: Symbol name has already been declared
