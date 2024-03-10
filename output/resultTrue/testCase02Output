@@ -6,3 +6,4 @@ Line	OP	L	M
 2	SYS	0	3
 Symbol Table:
 Kind	Name	Val	Level	Addr	Mark
+1	x	10	0	0	1

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+gcc -o parsercodegen parsercodegen.c
+
 # Directory containing the test cases that should pass without errors
 testCaseDir="/home/noway/CLionProjects/parsercodegen/testCases/resultTrue"
 # Output directory for the results

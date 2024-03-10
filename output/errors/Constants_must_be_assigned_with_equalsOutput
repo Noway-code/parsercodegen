@@ -1,2 +1,3 @@
-const x : 10;
-Error: Not a valid symbol
+const x =: 10;
+Something went wrong while printing the extra symbols
+Error: Constants must be assigned with equals

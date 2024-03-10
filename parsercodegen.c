@@ -106,9 +106,6 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-// Get rid of later
-int checkCount = 1;
-
 // -----------------------------------------------HW2 Functions-----------------------------------------------
 // Prints out the source file, and rewinds the fileptr
 void printSource(FILE *fileptr) {
@@ -186,7 +183,7 @@ void createToken(FILE *fileptr) {
 			exit(1);
 		}
 	}
-	// printTokenList(); 
+	// printTokenList();
 }
 
 // Peeks at the character in front of our current reader
@@ -479,7 +476,7 @@ void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mar
 	symbol_table[symbolIndex++] = sym;
 }
 
-void PRINT_ASS() {
+void PRINT_ASSEMBLY() {
 	printf("Assembly Table:\n");
 	printf("Line\tOP\tL\tM\n");
 	for (int i = 0; i < assemblyIndex; ++i) {
@@ -488,16 +485,14 @@ void PRINT_ASS() {
 }
 
 void PRINT_SYMBOLTABLE() {
-	PRINT_ASS();
+	PRINT_ASSEMBLY();
 
 	printf("Symbol Table:\n");
 	printf("Kind\tName\tVal\tLevel\tAddr\tMark\n");
 	for (int i = 0; i < symbolIndex; i++) {
-		if (symbol_table[i].kind == 2) {
 			symbol_table[i].mark = 1;
 			printf("%d\t%s\t%d\t%d\t%d\t%d\n", symbol_table[i].kind, symbol_table[i].name, symbol_table[i].val, symbol_table[i].level,
 			       symbol_table[i].addr, symbol_table[i].mark);
-		}
 	}
 }
 
