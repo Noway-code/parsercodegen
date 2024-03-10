@@ -306,6 +306,7 @@ void assignReserved(char *lexeme, int token, int lexCount) {
 
 		default:
 			printf("Something went wrong printing reserved\n");
+			exit(1);
 			break;
 	}
 }
@@ -347,7 +348,8 @@ void assignSymbol(char *lexeme, int token, int lexCount) {
 				break;
 
 			default:
-				printf("Something went wrong while printing the extra symbols\n");
+				printf("Error: Not a valid symbol\n");
+				exit(1);
 				break;
 		}
 	}
@@ -414,7 +416,8 @@ void assignSymbol(char *lexeme, int token, int lexCount) {
 				break;
 
 			default:
-				printf("Something went wrong while printing the symbols\n");
+				printf("Error: Not a valid symbol\n");
+				exit(1);
 				break;
 		}
 	}
