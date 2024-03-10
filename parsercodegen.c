@@ -493,9 +493,11 @@ void PRINT_SYMBOLTABLE() {
 	printf("Symbol Table:\n");
 	printf("Kind\tName\tVal\tLevel\tAddr\tMark\n");
 	for (int i = 0; i < symbolIndex; i++) {
-		if (symbol_table[i].kind == 2)
+		if (symbol_table[i].kind == 2) {
+			symbol_table[i].mark = 1;
 			printf("%d\t%s\t%d\t%d\t%d\t%d\n", symbol_table[i].kind, symbol_table[i].name, symbol_table[i].val, symbol_table[i].level,
 			       symbol_table[i].addr, symbol_table[i].mark);
+		}
 	}
 }
 
