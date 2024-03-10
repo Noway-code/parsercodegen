@@ -43,7 +43,7 @@ fileName may be `runErrorTests` or `runTruthCheck`
 
 ## Output Files
 
-The `outputs` directory includes at least 15 output files corresponding to the compiler's output for each input file. These demonstrate the error handling and successful compilation where applicable.
+The `outputs` directory includes 30 output files corresponding to the compiler's output for each input file.
 
 ## Features
 
