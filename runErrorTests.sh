@@ -2,12 +2,17 @@
 
 # Directory containing the error test cases
 testCaseDir="./testCases/errors"
+# Output directory for errors
+outputDir="./output/errors"
 
 # Check if parsercodegen executable exists
 if [ ! -f "./parsercodegen" ]; then
     echo "parsercodegen executable not found."
     exit 1
 fi
+
+# Create the output directory if it doesn't exist
+mkdir -p "$outputDir"
 
 # Function to simplify strings for comparison
 simplify_string() {
@@ -28,6 +33,10 @@ for testFile in "$testCaseDir"/*; do
 
     # Run parsercodegen with the test file and capture the output
     output=$(./parsercodegen "$testFile" 2>&1)
+
+    # Save the output to a file in the specified output directory
+    echo "$output" > "$outputDir/${fileName}Output"
+
     simplifiedOutput=$(simplify_string "$output")
 
     # Print the output
@@ -45,7 +54,6 @@ for testFile in "$testCaseDir"/*; do
 
     echo "----------------------------------------------------"
 done
-
 
 # Print summary table
 echo "Summary of Test Results"
