@@ -39,7 +39,6 @@ void createToken(FILE *fileptr);
 char peek(FILE *fileptr);
 int isReserved(char *lexeme);
 int isSymbol(char reader);
-
 int symbolCheck(char *lexeme, int lexCount);
 void assignReserved(char *lexeme, int token, int lexCount);
 void assignNumber(char *lexeme, int lexCount);
@@ -174,7 +173,8 @@ void createToken(FILE *fileptr) {
 				comment = 1;
 			}
 			else if ((strcmp(lexeme, ":") == 0)) { // ":" alone is considered an invalid symbol
-				printf("Error:\t\t\tNot a valid symbol\n");
+				printf("Error: Not a valid symbol\n");
+				exit(1);
 			}
 			else {
 				token = symbolCheck(lexeme, lexCount);
@@ -182,10 +182,11 @@ void createToken(FILE *fileptr) {
 			}
 		}
 		else {
-			printf("Error:\t\t\tNot a valid symbol\n");
+			printf("Error: Not a valid symbol\n");
+			exit(1);
 		}
 	}
-	printTokenList();
+	// printTokenList(); 
 }
 
 // Peeks at the character in front of our current reader
@@ -244,7 +245,8 @@ int symbolCheck(char *lexeme, int lexCount) {
 void assignReserved(char *lexeme, int token, int lexCount) {
 	// Checks to make sure the ident isn't too long
 	if (lexCount > 11) {
-		printf("Error:\t\t\tName too long\n");
+		printf("Error: Name too long\n");
+		exit(1);
 		return;
 	}
 
@@ -314,7 +316,8 @@ void assignReserved(char *lexeme, int token, int lexCount) {
 // Prints the number and numbersym
 void assignNumber(char *lexeme, int lexCount) {
 	if (lexCount > numMax) {
-		printf("Error:\t\t\tNumber too long\n");
+		printf("Error: Number too long\n");
+		exit(1);
 		return;
 	}
 	tokenList[tokenCount].token = numbersym;
