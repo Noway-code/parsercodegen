@@ -1,5 +1,7 @@
 #!/bin/bash
 
+gcc -o parsercodegen parsercodegen.c
+
 # Directory containing the error test cases
 testCaseDir="./testCases/errors"
 # Output directory for errors
