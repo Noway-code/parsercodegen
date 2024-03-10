@@ -1,0 +1,2 @@
+var x; if x = 10 begin end.
+Error: if must be followed by then

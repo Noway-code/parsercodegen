@@ -1,0 +1,18 @@
+var x; begin while x < 10 do x := x + 1 end.
+Assembly Table:
+Line	OP	L	M
+0	JPC	0	3
+1	INC	0	4
+2	LOD	0	3
+3	LIT	0	10
+4	OPR	0	7
+5	JPC	0	11
+6	LOD	0	3
+7	LIT	0	1
+8	OPR	0	1
+9	STO	0	3
+10	JMP	0	2
+11	SYS	0	3
+Symbol Table:
+Kind	Name	Val	Level	Addr	Mark
+2	x	0	0	3	1

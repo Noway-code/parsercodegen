@@ -1,0 +1,2 @@
+const x = 10
+Error: Constant declarations must be followed by a semicolon

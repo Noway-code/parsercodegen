@@ -1,0 +1,2 @@
+var x
+Error: Variable declarations must be followed by a semicolon

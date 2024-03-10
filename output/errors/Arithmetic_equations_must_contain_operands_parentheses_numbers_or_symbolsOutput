@@ -1,0 +1,2 @@
+var x; begin x := + ; end.
+Error: Arithmetic equations must contain operands, parentheses, numbers, or symbols

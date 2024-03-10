@@ -1,0 +1,15 @@
+var x; begin x := 2 + 3 * 4 end.
+Assembly Table:
+Line	OP	L	M
+0	JPC	0	3
+1	INC	0	4
+2	LIT	0	2
+3	LIT	0	3
+4	LIT	0	4
+5	OPR	0	3
+6	OPR	0	1
+7	STO	0	3
+8	SYS	0	3
+Symbol Table:
+Kind	Name	Val	Level	Addr	Mark
+2	x	0	0	3	1

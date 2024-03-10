@@ -1,0 +1,19 @@
+var x; begin x := 5; if x < 10 then x := x + 1 fi end.
+Assembly Table:
+Line	OP	L	M
+0	JPC	0	3
+1	INC	0	4
+2	LIT	0	5
+3	STO	0	3
+4	LOD	0	3
+5	LIT	0	10
+6	OPR	0	7
+7	JPC	0	12
+8	LOD	0	3
+9	LIT	0	1
+10	OPR	0	1
+11	STO	0	3
+12	SYS	0	3
+Symbol Table:
+Kind	Name	Val	Level	Addr	Mark
+2	x	0	0	3	1
