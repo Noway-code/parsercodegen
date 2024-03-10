@@ -270,37 +270,37 @@ void assignReserved(char *lexeme, int token, int lexCount) {
 			tokenList[tokenCount++].token = beginsym;
 			break;
 
-		case 3: // end (previously case 5)
+		case 3: // end
 			tokenList[tokenCount++].token = endsym;
 			break;
 
-		case 4: // if (previously case 6)
+		case 4: // if
 			tokenList[tokenCount++].token = ifsym;
 			break;
 
-		case 5: // fi (previously case 7)
+		case 5: // fi
 			tokenList[tokenCount++].token = fisym;
 			break;
 
-		case 6: // then (previously case 8)
+		case 6: // then
 			tokenList[tokenCount++].token = thensym;
 			break;
 
 			// Removed case 9: elsesym
 
-		case 7: // while (previously case 10)
+		case 7: // while
 			tokenList[tokenCount++].token = whilesym;
 			break;
 
-		case 8: // do (previously case 11)
+		case 8: // do
 			tokenList[tokenCount++].token = dosym;
 			break;
 
-		case 9: // read (previously case 12)
+		case 9: // read
 			tokenList[tokenCount++].token = readsym;
 			break;
 
-		case 10: // write (previously case 13)
+		case 10: // write
 			tokenList[tokenCount++].token = writesym;
 			break;
 
@@ -444,7 +444,6 @@ void printTokenList() {
 
 
 // -----------------------------------------------HW3 Functions-----------------------------------------------
-// Function to emit instructions to the assembly array. Not sure if this is correct, but it's a start.
 void emit(char *op, int l, int m) {
 //    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (assemblyIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
@@ -513,9 +512,8 @@ int SYMBOLTABLECHECK(char *string) {
 // if we don't end the block with a period, error. after the block, and period, we emit a halt.
 void PROGRAM() {
 	emit("JPC", 0, 3);
-	tokenCount = 0; // Resets the tokenCount so it reads from the start of the Token list
+	tokenCount = 0; // Resets the tokenCount, so it reads from the start of the Token list
 	BLOCK();
-//    printf("Current token end: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (tokenList[tokenCount].token != periodsym) {
 		printf("Error: Program must end with period\n");
 		exit(1);
@@ -524,8 +522,6 @@ void PROGRAM() {
 	PRINT_SYMBOLTABLE();
 }
 
-// we can have a const declaration or a var declaration, or both, or neither.
-// if we have a var declaration, we emit an INCREASE instruction with the number of variables.
 void BLOCK() {
 	CONST_DECLARATION();
 	int numVars = VAR_DECLARATION();
@@ -533,8 +529,6 @@ void BLOCK() {
 	STATEMENT();
 }
 
-
-// we can have multiple const declarations, each separated by a comma, and ending with a semicolon.
 void CONST_DECLARATION() {
 	if (tokenList[tokenCount].token == constsym) {
 		do {
@@ -565,7 +559,6 @@ void CONST_DECLARATION() {
 				printf("Error: Constants must be assigned an integer value\n");
 				exit(1);
 			}
-			// Assignment asks for ascii but idk why, that only works for single digit numbers.
 			ADD_SYMBOLTABLE(identName, 1, atoi(tokenList[tokenCount].number), 0, 0, 0);
 			tokenCount++;
 		} while (tokenList[tokenCount].token == commasym);
@@ -577,18 +570,12 @@ void CONST_DECLARATION() {
 	}
 }
 
-
-// we can have multiple var declarations, each separated by a comma, and ending with a semicolon. returns number of variables
-// im sussed out by all the tokenList[tokenCount++]. i think we are producing off by one errors.
-// symbol table is likely not being updated with the correct values ( im not sure if we are responsible for level and address in this assignment )
 int VAR_DECLARATION() {
 	int numVars = 0;
-//	printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (tokenList[tokenCount].token == varsym) {
 		do {
 			numVars++;
 			tokenCount++;
-//	        printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 			if (tokenList[tokenCount].token != identsym) {
 				printf("Error: Var keywords must be followed by identifiers\n");
 				exit(1);
@@ -609,13 +596,6 @@ int VAR_DECLARATION() {
 	}
 	return numVars;
 }
-
-// Ignore this, this is just cause my brain is fried and I keep forgetting what im writing.
-// Basically we are converting the pl0 code into a list of tokens, and then we are converting the list of tokens into a list of instructions.
-// we take possibly bad syntax pl0 code, check for errors, and then convert it into a list of instructions. We then check the syntax of the assembly instructions.
-// we are not responsible for the actual execution of the code, just the conversion of the pl0 code into a list of instructions.
-// tokens are the pl0 code, symbols are the list of instructions in assembly language.
-
 
 void STATEMENT() {
 	if (tokenList[tokenCount].token == identsym) {
@@ -788,7 +768,6 @@ void EXPRESSION() {
 }
 
 void TERM() {
-//	printf("Current token Yippe: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	FACTOR();
 	while (tokenList[tokenCount].token == multsym || tokenList[tokenCount].token == slashsym) {
 		if (tokenList[tokenCount].token == multsym) // MUL
@@ -805,11 +784,9 @@ void TERM() {
 		}
 	}
 }
-// #todo figure out mark
 
 // factor can be an identifier, a number, a left parenthesis followed by an expression followed by a right parenthesis, or an error.
 void FACTOR() {
-//    printf("Current token Yippee?: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (tokenList[tokenCount].token == identsym) {
 		// Check if identifier exists
 		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
