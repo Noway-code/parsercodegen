@@ -717,7 +717,7 @@ void STATEMENT() {
 // emits all have placeholders for the moment
 void CONDITION() {
 	// ODD
-	if (tokenList[tokenCount].token == oddsym) {
+	if (tokenList[tokenCount].token == oddsym) { // ODD
 		tokenCount++;
 		EXPRESSION();
 		emit("OPR", 0, 11);
