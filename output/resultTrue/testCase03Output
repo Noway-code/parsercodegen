@@ -1,9 +1,9 @@
 var x; begin end.
 Assembly Table:
-Line	OP	L	M
-0	JPC	0	3
-1	INC	0	4
-2	SYS	0	3
+Line  OP         L     M    
+0     JPC        0     3    
+1     INC        0     4    
+2     SYS        0     3    
 Symbol Table:
-Kind	Name	Val	Level	Addr	Mark
-2	x	0	0	3	1
+Kind  Name       Val   Level Addr  Mark 
+2     x          0     0     3     1    

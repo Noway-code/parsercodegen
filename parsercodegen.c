@@ -7,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 
+// Define constants for maximum lengths and numbers of various elements
 #define identMax 11
 #define numMax 5
 #define numResWords 14
@@ -16,7 +17,7 @@
 #define MAX_STRING 512
 #define MAX_SYMBOL_TABLE_SIZE 500
 
-
+// Define enumeration for token types
 typedef enum {
 	oddsym = 1, identsym, numbersym, plussym, minussym,
 	multsym, slashsym, fisym, eqsym, neqsym, lessym, leqsym,
@@ -26,14 +27,13 @@ typedef enum {
 	readsym
 } token_type;
 
+// Define arrays for special symbols, extra symbols, and reserved words
 char specialSymbols[numSpecSymbols] = {'+', '-', '*', '/', '(', ')', '=', ',', '.', '<', '>', ';', ':'};
-
 char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="};
-
 char reservedWords[numResWords][identMax] = {"const", "var", "begin", "end", "if",
                                              "fi", "then", "while", "do", "read", "write"};
 
-// Function Prototypes (HW2)
+// Function Prototypes for HW2
 void printSource(FILE *fileptr);
 void createToken(FILE *fileptr);
 char peek(FILE *fileptr);
@@ -45,7 +45,7 @@ void assignNumber(char *lexeme, int lexCount);
 void assignSymbol(char *lexeme, int token, int lexCount);
 void printTokenList();
 
-// Function Prototypes (HW3)
+// Function Prototypes for HW3
 void emit(char *op, int l, int m);
 void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mark);
 void PRINT_SYMBOLTABLE();
@@ -69,7 +69,7 @@ typedef struct Tokens {
 Tokens tokenList[MAX_STRING];
 int tokenCount;
 
-// Symbol struct for HW3.
+// Define a struct for symbols
 typedef struct Symbol {
 	char name[10]; // name up to 11 chars
 	int kind; // const = 1, var = 2, proc = 3
@@ -81,7 +81,7 @@ typedef struct Symbol {
 Symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 int symbolIndex = 0;
 
-
+// Define a struct for instructions
 typedef struct Instruction {
 	char op[11]; // Operation code
 	int l;  // Lexicographical level
@@ -93,6 +93,7 @@ int assemblyIndex = 0;
 int lexLvl;
 int address;
 
+// Main function
 int main(int argc, char **argv) {
 	if (argc < 2) {
 		printf("No file included\n");
@@ -106,8 +107,7 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-// -----------------------------------------------HW2 Functions-----------------------------------------------
-// Prints out the source file, and rewinds the fileptr
+// Function to print out the source file, and rewind the fileptr
 void printSource(FILE *fileptr) {
 	int reader; // int since EOF is represented as a negative number
 	// Print each character in the file until EOF is reached
@@ -480,23 +480,32 @@ void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mar
 
 void PRINT_ASSEMBLY() {
 	printf("Assembly Table:\n");
-	printf("Line\tOP\tL\tM\n");
+	printf("%-5s %-10s %-5s %-5s\n", "Line", "OP", "L", "M");
+
 	for (int i = 0; i < assemblyIndex; ++i) {
-		printf("%d\t%s\t%d\t%d\n", i, assembly[i].op, assembly[i].l, assembly[i].m);
+		printf("%-5d %-10s %-5d %-5d\n", i, assembly[i].op, assembly[i].l, assembly[i].m);
 	}
 }
+
 
 void PRINT_SYMBOLTABLE() {
 	PRINT_ASSEMBLY();
 
 	printf("Symbol Table:\n");
-	printf("Kind\tName\tVal\tLevel\tAddr\tMark\n");
+	printf("%-5s %-10s %-5s %-5s %-5s %-5s\n", "Kind", "Name", "Val", "Level", "Addr", "Mark");
+
 	for (int i = 0; i < symbolIndex; i++) {
-			symbol_table[i].mark = 1;
-			printf("%d\t%s\t%d\t%d\t%d\t%d\n", symbol_table[i].kind, symbol_table[i].name, symbol_table[i].val, symbol_table[i].level,
-			       symbol_table[i].addr, symbol_table[i].mark);
+		symbol_table[i].mark = 1;
+		printf("%-5d %-10s %-5d %-5d %-5d %-5d\n",
+		       symbol_table[i].kind,
+		       symbol_table[i].name,
+		       symbol_table[i].val,
+		       symbol_table[i].level,
+		       symbol_table[i].addr,
+		       symbol_table[i].mark);
 	}
 }
+
 
 //linear search through symbol table looking at name
 //return index if found, -1 if not
