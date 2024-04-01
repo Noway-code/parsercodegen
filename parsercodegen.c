@@ -693,14 +693,14 @@ void STATEMENT() {
 			exit(1);
 		}
 		tokenCount++;
-		emit("READ", 0, symbol_table[symIdx].addr);
+		emit("SYS", 0, 2);
 		emit("STO", lexLvl, symbol_table[symIdx].addr);
 
 	}
 	else if (tokenList[tokenCount].token == writesym) {
 		tokenCount++;
 		EXPRESSION();
-		emit("WRITE", 0, 0);
+		emit("SYS", 0, 1);
 	}
 }
 
