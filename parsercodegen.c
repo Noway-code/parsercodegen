@@ -511,7 +511,7 @@ int SYMBOLTABLECHECK(char *string) {
 
 // if we don't end the block with a period, error. after the block, and period, we emit a halt.
 void PROGRAM() {
-	emit("JPC", 0, 3);
+	emit("JMP", 0, 3);
 	tokenCount = 0; // Resets the tokenCount, so it reads from the start of the Token list
 	BLOCK();
 	if (tokenList[tokenCount].token != periodsym) {
@@ -683,6 +683,7 @@ void STATEMENT() {
 			printf("Error: Read into undeclared variable\n");
 			exit(1);
 		}
+		tokenCount++;
 		emit("READ", 0, symbol_table[symIdx].addr);
 		emit("STO", lexLvl, symbol_table[symIdx].addr);
 
