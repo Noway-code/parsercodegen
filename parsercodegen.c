@@ -647,14 +647,14 @@ void STATEMENT() {
 		tokenCount++;
 		CONDITION();
 		int jpcIdx = assemblyIndex; // Save current index for the jump
-		emit("JPC", 0, 0); // Placeholder for jump address
+		emit("JPC", 0, jpcIdx); // Placeholder for jump address
 		if (tokenList[tokenCount].token != thensym) {
 			printf("Error: if must be followed by then\n");
 			exit(1);
 		}
 		tokenCount++;
 		STATEMENT();
-		assembly[jpcIdx].m = assemblyIndex; // Update jump address to next instruction
+		assembly[jpcIdx].m = assemblyIndex * 3; // Update jump address to next instruction
 		if (tokenList[tokenCount].token != fisym) {
 			printf("Error: then must be followed by fi\n");
 			exit(1);
@@ -673,8 +673,8 @@ void STATEMENT() {
 		int jpcIdx = assemblyIndex; // Save current index for conditional jump
 		emit("JPC", 0, 0); // Placeholder for jump out of loop
 		STATEMENT();
-		emit("JMP", 0, loopStartIdx); // Jump back to start of loop
-		assembly[jpcIdx].m = assemblyIndex; // Update the jump-out address
+		emit("JMP", 0, loopStartIdx * 3); // Jump back to start of loop
+		assembly[jpcIdx].m = assemblyIndex * 3; // Update the jump-out address
 
 	}
 	else if (tokenList[tokenCount].token == readsym) {
