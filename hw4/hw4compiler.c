@@ -54,6 +54,7 @@ void BLOCK();
 void CONST_DECLARATION();
 int VAR_DECLARATION();
 void PROCEDURE_DECLARATION();
+void ADD_PROCEDURETABLE(char *name, int kind, int level, int addr);
 void STATEMENT();
 void CONDITION();
 void EXPRESSION();
@@ -671,6 +672,22 @@ void PROCEDURE_DECLARATION() {
 		}
 		tokenCount++;
 	}
+}
+
+// Add the procedure to the procedure table to keep track
+void ADD_PROCEDURETABLE(char *name, int kind, int level, int addr) {
+	if (procedureIndex >= MAX_SYMBOL_TABLE_SIZE) {
+		printf("Error: Procedure table overflow\n");
+		exit(1);
+	}
+
+	Procedure proc;
+	strcpy(proc.name, name);
+	proc.kind = kind;
+	proc.level = level;
+	proc.addr = addr;
+
+	procedure_table[procedureIndex++] = proc;
 }
 
 void STATEMENT() {
