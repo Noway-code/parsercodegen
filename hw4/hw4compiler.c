@@ -100,8 +100,10 @@ typedef struct Procedure {
 } Procedure;
 Procedure procedure_table[MAX_SYMBOL_TABLE_SIZE]; // Also arbitrary size for the moment
 int procedureIndex = 0;
+int procedureBaseIndex = 0;
 
-int lexLvl;
+int lexLvlCount;
+int baseLexLvl;
 int address;
 
 // Main function
@@ -665,6 +667,7 @@ void PROCEDURE_DECLARATION() {
 			exit(1);
 		}
 		tokenCount++;
+		ADD_PROCEDURETABLE(tokenList[tokenCount].identifier, 3, lexLvlCount++, tokenCount);
 		BLOCK();
 		if (tokenList[tokenCount].token != semicolonsym) {
 			printf("Error: Procedure declarations must be followed by a semicolon\n");
@@ -719,6 +722,9 @@ void STATEMENT() {
 			printf("Error: Call keywords must be followed by identifiers\n");
 			exit(1);
 		}
+		emit("CAL", 0, (procedureBaseIndex + 1) * 3); // Address based on procedure order
+		emit("JMP", 0, procedure_table[procedureBaseIndex++].addr);
+		baseLexLvl++;
 		tokenCount++;
 	}
 	else if (tokenList[tokenCount].token == beginsym) {
@@ -730,6 +736,10 @@ void STATEMENT() {
 		if (tokenList[tokenCount].token != endsym) {
 			printf("Error: begin must be followed by end\n");
 			exit(1);
+		}
+		if (baseLexLvl > 1) {
+			emit("RTN", 0, 0); // Returns from a procedure
+			baseLexLvl--;
 		}
 		tokenCount++;
 
@@ -785,7 +795,7 @@ void STATEMENT() {
 		}
 		tokenCount++;
 		emit("SYS", 0, 2);
-		emit("STO", lexLvl, symbol_table[symIdx].addr);
+		emit("STO", baseLexLvl, symbol_table[symIdx].addr);
 
 	}
 	else if (tokenList[tokenCount].token == writesym) {
@@ -898,7 +908,7 @@ void FACTOR() {
 		if (symbol_table[symIdx].kind == 1)
 			emit("LIT", 0, symbol_table[symIdx].val);
 		else
-			emit("LOD", lexLvl, symbol_table[symIdx].addr);
+			emit("LOD", baseLexLvl, symbol_table[symIdx].addr);
 		tokenCount++;
 	}
 	else if (tokenList[tokenCount].token == numbersym) {
