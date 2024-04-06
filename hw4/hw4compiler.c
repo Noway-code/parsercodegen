@@ -59,6 +59,7 @@ void CONDITION();
 void EXPRESSION();
 void TERM();
 void FACTOR();
+void PRINT_ASSEMBLY_TO_FILE(int i, FILE *fp);
 
 // Define a struct for tokens
 typedef struct Tokens {
@@ -500,12 +501,34 @@ void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mar
 }
 
 void PRINT_ASSEMBLY() {
+	FILE *fp = fopen("assembly_output.txt", "w"); // Open file for writing
+	if (fp == NULL) {
+		printf("Error opening file!\n");
+		return;
+	}
 	printf("Assembly Table:\n");
 	printf("%-5s %-10s %-5s %-5s\n", "Line", "OP", "L", "M");
 
 	for (int i = 0; i < assemblyIndex; ++i) {
 		printf("%-5d %-10s %-5d %-5d\n", i, assembly[i].op, assembly[i].l, assembly[i].m);
+		PRINT_ASSEMBLY_TO_FILE(i, fp);
 	}
+	fclose(fp); // Close the file
+}
+
+void PRINT_ASSEMBLY_TO_FILE(int i, FILE *fp) {
+	int op = 0;
+	char *str = assembly[i].op;
+	if (strcmp(str, "LIT") == 0) op = 1;
+	else if (strcmp(str, "OPR") == 0) op = 2;
+	else if (strcmp(str, "LOD") == 0) op = 3;
+	else if (strcmp(str, "STO") == 0) op = 4;
+	else if (strcmp(str, "CAL") == 0) op = 5;
+	else if (strcmp(str, "INC") == 0) op = 6;
+	else if (strcmp(str, "JMP") == 0) op = 7;
+	else if (strcmp(str, "JPC") == 0) op = 8;
+	else if (strcmp(str, "SYS") == 0) op = 9;
+	fprintf(fp, "%-5d %-10d %-5d %-5d\n", i, op, assembly[i].l, assembly[i].m); // Write loop data to file
 }
 
 
