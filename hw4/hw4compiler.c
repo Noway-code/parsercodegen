@@ -501,7 +501,7 @@ void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mar
 }
 
 void PRINT_ASSEMBLY() {
-	FILE *fp = fopen("ELF.txt", "w"); // Open file for writing
+	FILE *fp = fopen("assembly_output.txt", "w"); // Open file for writing
 	if (fp == NULL) {
 		printf("Error opening file!\n");
 		return;
@@ -528,7 +528,7 @@ void PRINT_ASSEMBLY_TO_FILE(int i, FILE *fp) {
 	else if (strcmp(str, "JMP") == 0) op = 7;
 	else if (strcmp(str, "JPC") == 0) op = 8;
 	else if (strcmp(str, "SYS") == 0) op = 9;
-	fprintf(fp, "%d %d %d\n", op, assembly[i].l, assembly[i].m); // Write loop data to file
+	fprintf(fp, "%-5d %-10d %-5d %-5d\n", i, op, assembly[i].l, assembly[i].m); // Write loop data to file
 }
 
 
@@ -664,7 +664,6 @@ void PROCEDURE_DECLARATION() {
 			exit(1);
 		}
 		tokenCount++;
-
 		BLOCK();
 		if (tokenList[tokenCount].token != semicolonsym) {
 			printf("Error: Procedure declarations must be followed by a semicolon\n");
