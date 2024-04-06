@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -30,7 +29,7 @@ typedef enum {
 // Define arrays for special symbols, extra symbols, and reserved words
 char specialSymbols[numSpecSymbols] = {'+', '-', '*', '/', '(', ')', '=', ',', '.', '<', '>', ';', ':'};
 char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="};
-char reservedWords[numResWords][identMax] = {"const", "var", "begin", "end", "if", "fi", "then", 
+char reservedWords[numResWords][identMax] = {"const", "var", "begin", "end", "if", "fi", "then",
 											"while", "do", "read", "write", "odd", "procedure", "call"};
 
 // Function Prototypes for HW2
@@ -54,6 +53,7 @@ void PROGRAM();
 void BLOCK();
 void CONST_DECLARATION();
 int VAR_DECLARATION();
+void PROCEDURE_DECLARATION();
 void STATEMENT();
 void CONDITION();
 void EXPRESSION();
@@ -556,25 +556,7 @@ void BLOCK() {
 	CONST_DECLARATION();
 	int numVars = VAR_DECLARATION();
 	emit("INC", 0, 3 + numVars);
-	while (tokenList[tokenCount].token == procsym) {
-		tokenCount++;
-		if (tokenList[tokenCount].token != identsym) {
-			printf("Error: Procedure keywords must be followed by identifiers\n");
-			exit(1);
-		}
-		tokenCount++;
-		if (tokenList[tokenCount].token != semicolonsym) {
-			printf("Error: Procedure declarations must be followed by a semicolon\n");
-			exit(1);
-		}
-		tokenCount++;
-		BLOCK();
-		if (tokenList[tokenCount].token != semicolonsym) {
-			printf("Error: Procedure declarations must be followed by a semicolon\n");
-			exit(1);
-		}
-		tokenCount++;
-	}
+	PROCEDURE_DECLARATION();
 	STATEMENT();
 }
 
@@ -646,9 +628,30 @@ int VAR_DECLARATION() {
 	return numVars;
 }
 
+void PROCEDURE_DECLARATION() {
+	while (tokenList[tokenCount].token == procsym) {
+		tokenCount++;
+		if (tokenList[tokenCount].token != identsym) {
+			printf("Error: Procedure keywords must be followed by identifiers\n");
+			exit(1);
+		}
+		tokenCount++;
+		if (tokenList[tokenCount].token != semicolonsym) {
+			printf("Error: Procedure declarations must be followed by a semicolon\n");
+			exit(1);
+		}
+		tokenCount++;
+		BLOCK();
+		if (tokenList[tokenCount].token != semicolonsym) {
+			printf("Error: Procedure declarations must be followed by a semicolon\n");
+			exit(1);
+		}
+		tokenCount++;
+	}
+}
+
 void STATEMENT() {
 	if (tokenList[tokenCount].token == identsym) {
-		// Check if identifier exists
 		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
 		if (symIdx == -1) {
 			printf("Error: Undeclared identifier\n");
