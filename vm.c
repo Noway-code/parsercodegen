@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	// Check if the input file is specified
 	if (argc != 2)
 	{
-		printf("Usage: %s<input.txt>\n", argv[0]);
+		printf("Usage: %s<ELF.txt>\n", argv[0]);
 		return 1; // Exit the program if the input file is not specified
 	}
 	inFile = fopen(argv[1], "r");
