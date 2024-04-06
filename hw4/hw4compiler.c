@@ -24,14 +24,14 @@ typedef enum {
 	gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
 	periodsym, becomessym, beginsym, endsym, ifsym, thensym,
 	whilesym, dosym, constsym, varsym, writesym,
-	readsym
+	readsym, procsym, callsym
 } token_type;
 
 // Define arrays for special symbols, extra symbols, and reserved words
 char specialSymbols[numSpecSymbols] = {'+', '-', '*', '/', '(', ')', '=', ',', '.', '<', '>', ';', ':'};
 char extraSymbols[numExtraSymbols][extraSymbolsLength] = {":=", "<>", "<=", ">="};
-char reservedWords[numResWords][identMax] = {"const", "var", "begin", "end", "if",
-                                             "fi", "then", "while", "do", "read", "write"};
+char reservedWords[numResWords][identMax] = {"const", "var", "begin", "end", "if", "fi", "then", 
+											"while", "do", "read", "write", "odd", "procedure", "call"};
 
 // Function Prototypes for HW2
 void printSource(FILE *fileptr);
@@ -313,6 +313,18 @@ void assignReserved(char *lexeme, int token, int lexCount) {
 			tokenList[tokenCount++].token = writesym;
 			break;
 
+		case 11: // odd
+			tokenList[tokenCount++].token = oddsym;
+			break;
+
+		case 12: // procedure
+			tokenList[tokenCount++].token = procsym;
+			break;
+
+		case 13: // call
+			tokenList[tokenCount++].token = callsym;
+			break;
+
 		default:
 			printf("Something went wrong printing reserved\n");
 			exit(1);
@@ -452,7 +464,7 @@ void printTokenList() {
 }
 
 
-// -----------------------------------------------HW3 Functions-----------------------------------------------
+// -----------------------------------------------HW3+HW4 Functions-----------------------------------------------
 void emit(char *op, int l, int m) {
 //    printf("Current token: %d | %d\n", checkCount++, tokenList[tokenCount].token);
 	if (assemblyIndex >= MAX_SYMBOL_TABLE_SIZE) { //also arbitrary size
@@ -544,6 +556,25 @@ void BLOCK() {
 	CONST_DECLARATION();
 	int numVars = VAR_DECLARATION();
 	emit("INC", 0, 3 + numVars);
+	while (tokenList[tokenCount].token == procsym) {
+		tokenCount++;
+		if (tokenList[tokenCount].token != identsym) {
+			printf("Error: Procedure keywords must be followed by identifiers\n");
+			exit(1);
+		}
+		tokenCount++;
+		if (tokenList[tokenCount].token != semicolonsym) {
+			printf("Error: Procedure declarations must be followed by a semicolon\n");
+			exit(1);
+		}
+		tokenCount++;
+		BLOCK();
+		if (tokenList[tokenCount].token != semicolonsym) {
+			printf("Error: Procedure declarations must be followed by a semicolon\n");
+			exit(1);
+		}
+		tokenCount++;
+	}
 	STATEMENT();
 }
 
@@ -638,6 +669,14 @@ void STATEMENT() {
 		EXPRESSION();
 		emit("STO", 0, symbol_table[symIdx].addr); // Assuming addr is the address to store the value
 
+	}
+	else if (tokenList[tokenCount].token == callsym) {
+		tokenCount++;
+		if (tokenList[tokenCount].token != identsym) {
+			printf("Error: Call keywords must be followed by identifiers\n");
+			exit(1);
+		}
+		tokenCount++;
 	}
 	else if (tokenList[tokenCount].token == beginsym) {
 		do {
