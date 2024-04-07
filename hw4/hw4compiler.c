@@ -620,11 +620,12 @@ void PROCEDURE_DECLARATION() {
 			printf("Error: Procedure keywords must be followed by identifiers\n");
 			exit(1);
 		}
-		tokenCount++;
+		
 		if (PROCTABLECHECK(tokenList[tokenCount].identifier) != -1) {
 			printf("Error: Procedure name has already been declared\n");
 			exit(1);
 		}
+		tokenCount++;
 		ADD_PROCEDURETABLE(tokenList[tokenCount].identifier, 3, level, tokenCount);
 		if (tokenList[tokenCount].token != semicolonsym) {
 			printf("Error: Procedure declarations must be followed by a semicolon\n");
@@ -637,7 +638,6 @@ void PROCEDURE_DECLARATION() {
 			exit(1);
 		}
 		tokenCount++;
-		emit("RTN", 0, 0); // Return from procedure
 	}
 }
 
@@ -757,7 +757,7 @@ void STATEMENT() {
 			printf("Error: begin must be followed by end\n");
 			exit(1);
 		}
-		if (level > 1) {
+		if (level >= 1) {
 			emit("RTN", 0, 0); // Returns from a procedure
 			level--;
 		}
