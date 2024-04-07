@@ -61,6 +61,7 @@ void EXPRESSION();
 void TERM();
 void FACTOR();
 void PRINT_ASSEMBLY_TO_FILE(int i, FILE *fp);
+int PROCTABLECHECK(char *name);
 
 // Define a struct for tokens
 typedef struct Tokens {
@@ -102,9 +103,7 @@ Procedure procedure_table[MAX_SYMBOL_TABLE_SIZE]; // Also arbitrary size for the
 int procedureIndex = 0;
 int procedureBaseIndex = 0;
 
-int lexLvlCount;
-int baseLexLvl;
-int address;
+int level;
 
 // Main function
 int main(int argc, char **argv) {
@@ -504,7 +503,7 @@ void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mar
 }
 
 void PRINT_ASSEMBLY() {
-	FILE *fp = fopen("assembly_output.txt", "w"); // Open file for writing
+	FILE *fp = fopen("ELF.txt", "w"); // Open file for writing
 	if (fp == NULL) {
 		printf("Error opening file!\n");
 		return;
@@ -531,7 +530,7 @@ void PRINT_ASSEMBLY_TO_FILE(int i, FILE *fp) {
 	else if (strcmp(str, "JMP") == 0) op = 7;
 	else if (strcmp(str, "JPC") == 0) op = 8;
 	else if (strcmp(str, "SYS") == 0) op = 9;
-	fprintf(fp, "%-5d %-10d %-5d %-5d\n", i, op, assembly[i].l, assembly[i].m); // Write loop data to file
+	fprintf(fp, "%d %d %d\n", op, assembly[i].l, assembly[i].m); // Write loop data to file
 }
 
 
@@ -568,6 +567,7 @@ int SYMBOLTABLECHECK(char *string) {
 // if we don't end the block with a period, error. after the block, and period, we emit a halt.
 void PROGRAM() {
 	emit("JMP", 0, 3);
+	level = -1;
 	tokenCount = 0; // Resets the tokenCount, so it reads from the start of the Token list
 	BLOCK();
 	if (tokenList[tokenCount].token != periodsym) {
@@ -579,12 +579,68 @@ void PROGRAM() {
 }
 
 void BLOCK() {
+	level++;
+//	int procIndex = symbolIndex-1;
 	CONST_DECLARATION();
 	int numVars = VAR_DECLARATION();
 	emit("INC", 0, 3 + numVars);
 	PROCEDURE_DECLARATION();
 	STATEMENT();
+	level--;
 }
+
+int PROCTABLECHECK(char *name) {
+	for (int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++) {
+		if (strcmp(procedure_table[i].name, name) == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+// Add the procedure to the procedure table to keep track
+void ADD_PROCEDURETABLE(char *name, int kind, int lvl, int addr) {
+	if (procedureIndex >= MAX_SYMBOL_TABLE_SIZE) {
+		printf("Error: Procedure table overflow\n");
+		exit(1);
+	}
+	Procedure proc;
+	strcpy(proc.name, name);
+	proc.kind = kind;
+	proc.level = lvl;
+	proc.addr = addr;
+
+	procedure_table[procedureIndex++] = proc;
+}
+
+void PROCEDURE_DECLARATION() {
+	while (tokenList[tokenCount].token == procsym) {
+		tokenCount++;
+		if (tokenList[tokenCount].token != identsym) {
+			printf("Error: Procedure keywords must be followed by identifiers\n");
+			exit(1);
+		}
+		tokenCount++;
+		if (PROCTABLECHECK(tokenList[tokenCount].identifier) != -1) {
+			printf("Error: Procedure name has already been declared\n");
+			exit(1);
+		}
+		ADD_PROCEDURETABLE(tokenList[tokenCount].identifier, 3, level, tokenCount);
+		if (tokenList[tokenCount].token != semicolonsym) {
+			printf("Error: Procedure declarations must be followed by a semicolon\n");
+			exit(1);
+		}
+		tokenCount++;
+		BLOCK();
+		if (tokenList[tokenCount].token != semicolonsym) {
+			printf("Error: Procedure declarations must be followed by a semicolon\n");
+			exit(1);
+		}
+		tokenCount++;
+		emit("RTN", 0, 0); // Return from procedure
+	}
+}
+
 
 void CONST_DECLARATION() {
 	if (tokenList[tokenCount].token == constsym) {
@@ -654,44 +710,8 @@ int VAR_DECLARATION() {
 	return numVars;
 }
 
-void PROCEDURE_DECLARATION() {
-	while (tokenList[tokenCount].token == procsym) {
-		tokenCount++;
-		if (tokenList[tokenCount].token != identsym) {
-			printf("Error: Procedure keywords must be followed by identifiers\n");
-			exit(1);
-		}
-		tokenCount++;
-		if (tokenList[tokenCount].token != semicolonsym) {
-			printf("Error: Procedure declarations must be followed by a semicolon\n");
-			exit(1);
-		}
-		tokenCount++;
-		ADD_PROCEDURETABLE(tokenList[tokenCount].identifier, 3, lexLvlCount++, tokenCount);
-		BLOCK();
-		if (tokenList[tokenCount].token != semicolonsym) {
-			printf("Error: Procedure declarations must be followed by a semicolon\n");
-			exit(1);
-		}
-		tokenCount++;
-	}
-}
 
-// Add the procedure to the procedure table to keep track
-void ADD_PROCEDURETABLE(char *name, int kind, int level, int addr) {
-	if (procedureIndex >= MAX_SYMBOL_TABLE_SIZE) {
-		printf("Error: Procedure table overflow\n");
-		exit(1);
-	}
 
-	Procedure proc;
-	strcpy(proc.name, name);
-	proc.kind = kind;
-	proc.level = level;
-	proc.addr = addr;
-
-	procedure_table[procedureIndex++] = proc;
-}
 
 void STATEMENT() {
 	if (tokenList[tokenCount].token == identsym) {
@@ -724,7 +744,7 @@ void STATEMENT() {
 		}
 		emit("CAL", 0, (procedureBaseIndex + 1) * 3); // Address based on procedure order
 		emit("JMP", 0, procedure_table[procedureBaseIndex++].addr);
-		baseLexLvl++;
+		level++;
 		tokenCount++;
 	}
 	else if (tokenList[tokenCount].token == beginsym) {
@@ -737,9 +757,9 @@ void STATEMENT() {
 			printf("Error: begin must be followed by end\n");
 			exit(1);
 		}
-		if (baseLexLvl > 1) {
+		if (level > 1) {
 			emit("RTN", 0, 0); // Returns from a procedure
-			baseLexLvl--;
+			level--;
 		}
 		tokenCount++;
 
@@ -795,7 +815,7 @@ void STATEMENT() {
 		}
 		tokenCount++;
 		emit("SYS", 0, 2);
-		emit("STO", baseLexLvl, symbol_table[symIdx].addr);
+		emit("STO", level, symbol_table[symIdx].addr);
 
 	}
 	else if (tokenList[tokenCount].token == writesym) {
@@ -908,7 +928,7 @@ void FACTOR() {
 		if (symbol_table[symIdx].kind == 1)
 			emit("LIT", 0, symbol_table[symIdx].val);
 		else
-			emit("LOD", baseLexLvl, symbol_table[symIdx].addr);
+			emit("LOD", level, symbol_table[symIdx].addr);
 		tokenCount++;
 	}
 	else if (tokenList[tokenCount].token == numbersym) {
