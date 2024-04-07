@@ -591,8 +591,9 @@ void BLOCK() {
 	assembly[jmpIdx].m = assemblyIndex * 3;
 	emit("INC", 0, 3 + numVars);
 	STATEMENT();
-	emit("RTN", 0, 0);
-	symbolIndex = prevSymbolIndex;
+	if(level >= 0)
+		emit("OPR", 0, 0); // Returns from a procedure
+//	symbolIndex = prevSymbolIndex;
 	level--;
 }
 
@@ -617,8 +618,12 @@ void PROCEDURE_DECLARATION() {
 			printf("Error: Procedure name has already been declared\n");
 			exit(1);
 		}
+// Saves the name of the identifier to be used for later
+		char identName[identMax];
+		strcpy(identName, tokenList[tokenCount].identifier);
 		tokenCount++;
-		ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 3, tokenList[tokenCount].token, level, tokenCount, 0); //TODO: Check mark
+
+		ADD_SYMBOLTABLE(identName, 3, tokenList[tokenCount].token, level, tokenCount, 0); //TODO: Check mark
 		if (tokenList[tokenCount].token != semicolonsym) {
 			printf("Error: Procedure declarations must be followed by a semicolon\n");
 			exit(1);
@@ -734,8 +739,10 @@ void STATEMENT() {
 			printf("Error: Call keywords must be followed by identifiers\n");
 			exit(1);
 		}
+		char identName[identMax];
+		strcpy(identName, tokenList[tokenCount].identifier);
 
-		int symIdx = symbolCheck(tokenList[tokenCount].identifier, level);
+		int symIdx = SYMBOLTABLECHECK(identName);
 		//Check Symbol Table
 
 		if (symIdx == -1) {
@@ -747,7 +754,7 @@ void STATEMENT() {
 //			exit(1);
 //		}
 		tokenCount++;
-		emit("CAL", symbol_table[symIdx].level, symbol_table[symIdx].addr);
+		emit("CAL", 0, (symbol_table[symIdx].addr/3)-1);
 
 		tokenCount++;
 	}
@@ -762,7 +769,7 @@ void STATEMENT() {
 			exit(1);
 		}
 		if (level >= 1) {
-			emit("RTN", 0, 0); // Returns from a procedure
+//			emit("OPR", 0, 0); // Returns from a procedure
 			level--;
 		}
 		tokenCount++;
