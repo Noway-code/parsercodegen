@@ -48,7 +48,7 @@ void printTokenList();
 void emit(char *op, int l, int m);
 void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mark);
 void PRINT_SYMBOLTABLE();
-int SYMBOLTABLECHECK(char *string);
+int SYMBOLTABLECHECK(char *string, int level, int kind);
 void PROGRAM();
 void BLOCK();
 void CONST_DECLARATION();
@@ -61,7 +61,6 @@ void EXPRESSION();
 void TERM();
 void FACTOR();
 void PRINT_ASSEMBLY_TO_FILE(int i, FILE *fp);
-int PROCTABLECHECK(char *name);
 
 // Define a struct for tokens
 typedef struct Tokens {
@@ -556,11 +555,17 @@ void PRINT_SYMBOLTABLE() {
 
 //linear search through symbol table looking at name
 //return index if found, -1 if not
-int SYMBOLTABLECHECK(char *string) {
+int SYMBOLTABLECHECK(char *string, int level, int kind) {
 	for (int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++) {
-		if (strcmp(symbol_table[i].name, string) == 0) {
+		if (strcmp(symbol_table[i].name, string) == 0 && kind == 0) {
 			return i;
 		}
+		else if (strcmp(symbol_table[i].name, string) == 0 && symbol_table[i].level == level && kind == 1)
+			return i;
+		else if (strcmp(symbol_table[i].name, string) == 0 && symbol_table[i].level == level && kind == 2)
+			return i;
+		else if (strcmp(symbol_table[i].name, string) == 0 && kind == 3)
+			return i;
 	}
 	return -1;
 }
@@ -597,15 +602,6 @@ void BLOCK() {
 	level--;
 }
 
-int PROCTABLECHECK(char *name) {
-	for (int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++) {
-		if (strcmp(symbol_table[i].name, name) == 0 && symbol_table[i].kind == 3 && symbol_table[i].mark == 0 ) {
-			return i;
-		}
-	}
-	return -1;
-}
-
 void PROCEDURE_DECLARATION() {
 	while (tokenList[tokenCount].token == procsym) {
 		tokenCount++;
@@ -614,7 +610,7 @@ void PROCEDURE_DECLARATION() {
 			exit(1);
 		}
 
-		if (PROCTABLECHECK(tokenList[tokenCount].identifier) != -1) {
+		if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 3) != -1) {
 			printf("Error: Procedure name has already been declared\n");
 			exit(1);
 		}
@@ -648,8 +644,8 @@ void CONST_DECLARATION() {
 				exit(1);
 			}
 
-			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier) != -1) {
-				printf("Error: Symbol name has already been declared\n");
+			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 1) != -1) {
+				printf("Error: Const name has already been declared\n");
 				exit(1);
 			}
 
@@ -691,8 +687,8 @@ int VAR_DECLARATION() {
 				exit(1);
 			}
 
-			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier) != -1) {
-				printf("Error: Symbol name has already been declared\n");
+			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 2) != -1) {
+				printf("Error: Variable name has already been declared\n");
 				exit(1);
 			}
 			ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 2, 0, level, 2 + numVars, 0);
@@ -712,7 +708,7 @@ int VAR_DECLARATION() {
 
 void STATEMENT() {
 	if (tokenList[tokenCount].token == identsym) {
-		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 0);
 		if (symIdx == -1) {
 			printf("Error: Undeclared identifier\n");
 			exit(1);
@@ -742,7 +738,7 @@ void STATEMENT() {
 		char identName[identMax];
 		strcpy(identName, tokenList[tokenCount].identifier);
 
-		int symIdx = SYMBOLTABLECHECK(identName);
+		int symIdx = SYMBOLTABLECHECK(identName, level, 3);
 		//Check Symbol Table
 
 		if (symIdx == -1) {
@@ -763,8 +759,9 @@ void STATEMENT() {
 			tokenCount++;
 			STATEMENT();
 		} while (tokenList[tokenCount].token == semicolonsym);
-
+		
 		if (tokenList[tokenCount].token != endsym) {
+			printf("Token: %d ", tokenList[tokenCount].token);
 			printf("Error: begin must be followed by end\n");
 			exit(1);
 		}
@@ -815,7 +812,7 @@ void STATEMENT() {
 			printf("Error: read keywords must be followed by identifier\n");
 			exit(1);
 		}
-		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 2);
 		if (symIdx == -1) {
 			printf("Error: Read into non-variable\n");
 			exit(1);
@@ -931,7 +928,7 @@ void TERM() {
 void FACTOR() {
 	if (tokenList[tokenCount].token == identsym) {
 		// Check if identifier exists
-		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier);
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 0);
 		if (symIdx == -1) {
 			printf("Error: Identifier undeclared\n");
 			exit(1);
