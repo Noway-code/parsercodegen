@@ -502,6 +502,7 @@ void ADD_SYMBOLTABLE(char *name, int kind, int val, int level, int addr, int mar
 	symbol_table[symbolIndex++] = sym;
 }
 
+
 void PRINT_ASSEMBLY() {
 	FILE *fp = fopen("ELF.txt", "w"); // Open file for writing
 	if (fp == NULL) {
@@ -566,7 +567,6 @@ int SYMBOLTABLECHECK(char *string) {
 
 // if we don't end the block with a period, error. after the block, and period, we emit a halt.
 void PROGRAM() {
-	emit("JMP", 0, 3);
 	level = -1;
 	tokenCount = 0; // Resets the tokenCount, so it reads from the start of the Token list
 	BLOCK();
@@ -580,36 +580,29 @@ void PROGRAM() {
 
 void BLOCK() {
 	level++;
+	int prevSymbolIndex = symbolIndex;
+	int jmpIdx = assemblyIndex;
+	emit("JMP", 0, 0); // Placeholder for jump address
+
 	CONST_DECLARATION();
 	int numVars = VAR_DECLARATION();
 	PROCEDURE_DECLARATION();
+
+	assembly[jmpIdx].m = assemblyIndex * 3;
 	emit("INC", 0, 3 + numVars);
 	STATEMENT();
+	emit("RTN", 0, 0);
+	symbolIndex = prevSymbolIndex;
 	level--;
 }
 
 int PROCTABLECHECK(char *name) {
 	for (int i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++) {
-		if (strcmp(procedure_table[i].name, name) == 0) {
+		if (strcmp(symbol_table[i].name, name) == 0 && symbol_table[i].kind == 3 && symbol_table[i].mark == 0 ) {
 			return i;
 		}
 	}
 	return -1;
-}
-
-// Add the procedure to the procedure table to keep track
-void ADD_PROCEDURETABLE(char *name, int kind, int lvl, int addr) {
-	if (procedureIndex >= MAX_SYMBOL_TABLE_SIZE) {
-		printf("Error: Procedure table overflow\n");
-		exit(1);
-	}
-	Procedure proc;
-	strcpy(proc.name, name);
-	proc.kind = kind;
-	proc.level = lvl;
-	proc.addr = addr;
-
-	procedure_table[procedureIndex++] = proc;
 }
 
 void PROCEDURE_DECLARATION() {
@@ -625,7 +618,7 @@ void PROCEDURE_DECLARATION() {
 			exit(1);
 		}
 		tokenCount++;
-		ADD_PROCEDURETABLE(tokenList[tokenCount].identifier, 3, level, tokenCount);
+		ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 3, tokenList[tokenCount].token, level, tokenCount, 0); //TODO: Check mark
 		if (tokenList[tokenCount].token != semicolonsym) {
 			printf("Error: Procedure declarations must be followed by a semicolon\n");
 			exit(1);
@@ -697,7 +690,7 @@ int VAR_DECLARATION() {
 				printf("Error: Symbol name has already been declared\n");
 				exit(1);
 			}
-			ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 2, 0, 0, 2 + numVars, 0);
+			ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 2, 0, level, 2 + numVars, 0);
 			tokenCount++;
 		} while (tokenList[tokenCount].token == commasym);
 		if (tokenList[tokenCount].token != semicolonsym) {
@@ -741,9 +734,21 @@ void STATEMENT() {
 			printf("Error: Call keywords must be followed by identifiers\n");
 			exit(1);
 		}
-		emit("CAL", 0, (procedureBaseIndex + 1) * 3); // Address based on procedure order
-		emit("JMP", 0, procedure_table[procedureBaseIndex++].addr);
-		level++;
+
+		int symIdx = symbolCheck(tokenList[tokenCount].identifier, level);
+		//Check Symbol Table
+
+		if (symIdx == -1) {
+			printf("Error: Call to undeclared procedure\n");
+			exit(1);
+		}
+//		if (symbol_table[symIdx].kind != 3) {
+//			printf("Error: Call to non-procedure\n");
+//			exit(1);
+//		}
+		tokenCount++;
+		emit("CAL", symbol_table[symIdx].level, symbol_table[symIdx].addr);
+
 		tokenCount++;
 	}
 	else if (tokenList[tokenCount].token == beginsym) {
