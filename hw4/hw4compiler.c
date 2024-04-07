@@ -580,11 +580,10 @@ void PROGRAM() {
 
 void BLOCK() {
 	level++;
-//	int procIndex = symbolIndex-1;
 	CONST_DECLARATION();
 	int numVars = VAR_DECLARATION();
-	emit("INC", 0, 3 + numVars);
 	PROCEDURE_DECLARATION();
+	emit("INC", 0, 3 + numVars);
 	STATEMENT();
 	level--;
 }
@@ -620,7 +619,7 @@ void PROCEDURE_DECLARATION() {
 			printf("Error: Procedure keywords must be followed by identifiers\n");
 			exit(1);
 		}
-		
+
 		if (PROCTABLECHECK(tokenList[tokenCount].identifier) != -1) {
 			printf("Error: Procedure name has already been declared\n");
 			exit(1);
