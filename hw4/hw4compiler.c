@@ -102,7 +102,7 @@ Procedure procedure_table[MAX_SYMBOL_TABLE_SIZE]; // Also arbitrary size for the
 int procedureIndex = 0;
 int procedureBaseIndex = 0;
 
-int level;
+int lexLevel;
 
 // Main function
 int main(int argc, char **argv) {
@@ -572,7 +572,7 @@ int SYMBOLTABLECHECK(char *string, int level, int kind) {
 
 // if we don't end the block with a period, error. after the block, and period, we emit a halt.
 void PROGRAM() {
-	level = -1;
+	lexLevel = -1;
 	tokenCount = 0; // Resets the tokenCount, so it reads from the start of the Token list
 	BLOCK();
 	if (tokenList[tokenCount].token != periodsym) {
@@ -584,7 +584,7 @@ void PROGRAM() {
 }
 
 void BLOCK() {
-	level++;
+	lexLevel++;
 	int prevSymbolIndex = symbolIndex;
 	int jmpIdx = assemblyIndex;
 	emit("JMP", 0, 0); // Placeholder for jump address
@@ -596,10 +596,9 @@ void BLOCK() {
 	assembly[jmpIdx].m = assemblyIndex * 3;
 	emit("INC", 0, 3 + numVars);
 	STATEMENT();
-	if(level >= 0)
-		emit("OPR", 0, 0); // Returns from a procedure
-//	symbolIndex = prevSymbolIndex;
-	level--;
+	if(lexLevel >= 1)
+		emit("OPR", 0, 0);
+	lexLevel--;
 }
 
 void PROCEDURE_DECLARATION() {
@@ -610,7 +609,7 @@ void PROCEDURE_DECLARATION() {
 			exit(1);
 		}
 
-		if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 3) != -1) {
+		if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, lexLevel, 3) != -1) {
 			printf("Error: Procedure name has already been declared\n");
 			exit(1);
 		}
@@ -619,7 +618,7 @@ void PROCEDURE_DECLARATION() {
 		strcpy(identName, tokenList[tokenCount].identifier);
 		tokenCount++;
 
-		ADD_SYMBOLTABLE(identName, 3, tokenList[tokenCount].token, level, tokenCount, 0); //TODO: Check mark
+		ADD_SYMBOLTABLE(identName, 3, tokenList[tokenCount].token, lexLevel, tokenCount, 0); //TODO: Check mark
 		if (tokenList[tokenCount].token != semicolonsym) {
 			printf("Error: Procedure declarations must be followed by a semicolon\n");
 			exit(1);
@@ -644,7 +643,7 @@ void CONST_DECLARATION() {
 				exit(1);
 			}
 
-			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 1) != -1) {
+			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, lexLevel, 1) != -1) {
 				printf("Error: Const name has already been declared\n");
 				exit(1);
 			}
@@ -665,7 +664,8 @@ void CONST_DECLARATION() {
 				printf("Error: Constants must be assigned an integer value\n");
 				exit(1);
 			}
-			ADD_SYMBOLTABLE(identName, 1, atoi(tokenList[tokenCount].number), 0, 0, 0);
+			//?
+			ADD_SYMBOLTABLE(identName, 1, atoi(tokenList[tokenCount].number), lexLevel, 0, 0);
 			tokenCount++;
 		} while (tokenList[tokenCount].token == commasym);
 		if (tokenList[tokenCount].token != semicolonsym) {
@@ -687,11 +687,11 @@ int VAR_DECLARATION() {
 				exit(1);
 			}
 
-			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 2) != -1) {
+			if (SYMBOLTABLECHECK(tokenList[tokenCount].identifier, lexLevel, 2) != -1) {
 				printf("Error: Variable name has already been declared\n");
 				exit(1);
 			}
-			ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 2, 0, level, 2 + numVars, 0);
+			ADD_SYMBOLTABLE(tokenList[tokenCount].identifier, 2, 0, lexLevel, 2 + numVars, 0);
 			tokenCount++;
 		} while (tokenList[tokenCount].token == commasym);
 		if (tokenList[tokenCount].token != semicolonsym) {
@@ -708,7 +708,7 @@ int VAR_DECLARATION() {
 
 void STATEMENT() {
 	if (tokenList[tokenCount].token == identsym) {
-		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 0);
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, lexLevel, 0);
 		if (symIdx == -1) {
 			printf("Error: Undeclared identifier\n");
 			exit(1);
@@ -726,7 +726,7 @@ void STATEMENT() {
 		}
 		tokenCount++;
 		EXPRESSION();
-		emit("STO", 0, symbol_table[symIdx].addr); // Assuming addr is the address to store the value
+		emit("STO", lexLevel - symbol_table[symIdx].level, symbol_table[symIdx].addr); // Assuming addr is the address to store the value
 
 	}
 	else if (tokenList[tokenCount].token == callsym) {
@@ -738,7 +738,7 @@ void STATEMENT() {
 		char identName[identMax];
 		strcpy(identName, tokenList[tokenCount].identifier);
 
-		int symIdx = SYMBOLTABLECHECK(identName, level, 3);
+		int symIdx = SYMBOLTABLECHECK(identName, lexLevel, 3);
 		//Check Symbol Table
 
 		if (symIdx == -1) {
@@ -750,24 +750,18 @@ void STATEMENT() {
 //			exit(1);
 //		}
 		tokenCount++;
-		emit("CAL", 0, (symbol_table[symIdx].addr/3)-1);
-
-		tokenCount++;
+		emit("CAL", lexLevel - symbol_table[symIdx].level, (symbol_table[symIdx].addr/3)-1);
 	}
 	else if (tokenList[tokenCount].token == beginsym) {
 		do {
 			tokenCount++;
 			STATEMENT();
 		} while (tokenList[tokenCount].token == semicolonsym);
-		
+
 		if (tokenList[tokenCount].token != endsym) {
 			printf("Token: %d ", tokenList[tokenCount].token);
 			printf("Error: begin must be followed by end\n");
 			exit(1);
-		}
-		if (level >= 1) {
-//			emit("OPR", 0, 0); // Returns from a procedure
-			level--;
 		}
 		tokenCount++;
 
@@ -812,7 +806,7 @@ void STATEMENT() {
 			printf("Error: read keywords must be followed by identifier\n");
 			exit(1);
 		}
-		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 2);
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, lexLevel, 2);
 		if (symIdx == -1) {
 			printf("Error: Read into non-variable\n");
 			exit(1);
@@ -823,7 +817,7 @@ void STATEMENT() {
 		}
 		tokenCount++;
 		emit("SYS", 0, 2);
-		emit("STO", level, symbol_table[symIdx].addr);
+		emit("STO", lexLevel - symbol_table[symIdx].level, symbol_table[symIdx].addr);
 
 	}
 	else if (tokenList[tokenCount].token == writesym) {
@@ -928,7 +922,7 @@ void TERM() {
 void FACTOR() {
 	if (tokenList[tokenCount].token == identsym) {
 		// Check if identifier exists
-		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, level, 0);
+		int symIdx = SYMBOLTABLECHECK(tokenList[tokenCount].identifier, lexLevel, 0);
 		if (symIdx == -1) {
 			printf("Error: Identifier undeclared\n");
 			exit(1);
@@ -936,7 +930,7 @@ void FACTOR() {
 		if (symbol_table[symIdx].kind == 1)
 			emit("LIT", 0, symbol_table[symIdx].val);
 		else
-			emit("LOD", level, symbol_table[symIdx].addr);
+			emit("LOD", lexLevel- symbol_table[symIdx].level, symbol_table[symIdx].addr);
 		tokenCount++;
 	}
 	else if (tokenList[tokenCount].token == numbersym) {
